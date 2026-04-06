@@ -1,353 +1,258 @@
 /**
- * BetweenUs WebSocket Relay Server
+ * Phantom Crew — WebSocket Relay Server
  *
- * This server acts as a relay between game clients and game servers.
- * It eliminates the need for port forwarding by routing all traffic
- * through this central server.
+ * Peer-to-peer relay for up to 8 players per room.
+ * All messages are JSON. Any player can host a room.
+ * Messages are broadcast to all other players in the room
+ * (no dedicated host required — fully peer-to-peer via relay).
  *
- * Clients connect and can either:
- * - HOST a game server (becomes the authoritative server for a room)
- * - JOIN a game (connects as a player)
+ * Supported client message types (all forwarded to room peers):
+ *   hostRoom, joinRoom, listRooms, playerUpdate, startGame, roleAssign,
+ *   playerMove, kill, reportBody, ventAction, sabotage, fixSabotage,
+ *   taskComplete, emergencyMeeting, chatMessage, vote, voteResult,
+ *   meetingEnd, gameOver, clientLeft, ping, pong
  *
- * Deploy to: Render, Railway, Fly.io, or any Node.js hosting
+ * Deploy to: Render, Railway, Fly.io, or any Node.js host
  */
 
 const WebSocket = require('ws');
 
 const PORT = process.env.PORT || 3000;
+const MAX_PLAYERS = 8;
+const ROOM_TTL_MS = 2 * 60 * 60 * 1000;  // 2 hours
+const PING_INTERVAL_MS = 25000;
+const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
 
-// Store active game rooms
-// roomId -> { host: WebSocket, clients: Map<clientId, WebSocket> }
+/**
+ * rooms: Map<roomName, RoomRecord>
+ * RoomRecord: {
+ *   name: string,
+ *   hostId: string,
+ *   maxPlayers: number,
+ *   phantomCount: number,
+ *   players: Map<playerId, { ws, name, colorKey, connId }>,
+ *   createdAt: number,
+ *   phase: 'lobby'|'playing'|'ended',
+ * }
+ */
 const rooms = new Map();
 
-// Store all connections for cleanup
+/** connections: Map<connId, { ws, playerId, roomName }> */
 const connections = new Map();
 
-// Generate unique IDs
-let connectionCounter = 0;
-function generateId() {
-    return `conn_${Date.now()}_${++connectionCounter}`;
-}
+let connCounter = 0;
+const genConnId = () => `c${Date.now()}${++connCounter}`;
 
 const wss = new WebSocket.Server({ port: PORT });
+console.log(`[PhantomCrew] Relay server v2 on port ${PORT}`);
 
-console.log(`BetweenUs Relay Server running on port ${PORT}`);
+// ── Connection lifecycle ───────────────────────────────────────────────────
 
 wss.on('connection', (ws) => {
-    const connectionId = generateId();
-    connections.set(connectionId, {
-        ws: ws,
-        type: null, // 'host' or 'client'
-        roomId: null,
-        playerName: null
-    });
+  const connId = genConnId();
+  connections.set(connId, { ws, playerId: null, roomName: null });
 
-    console.log(`New connection: ${connectionId}`);
+  ws.on('message', (raw) => {
+    try { dispatch(connId, ws, JSON.parse(raw.toString())); }
+    catch (e) { console.error('[msg error]', e.message); }
+  });
 
-    ws.on('message', (data) => {
-        try {
-            const message = data.toString();
-            handleMessage(connectionId, ws, message);
-        } catch (e) {
-            console.error('Error handling message:', e);
-        }
-    });
+  ws.on('close', () => onDisconnect(connId));
+  ws.on('error', (err) => { console.error(`[conn ${connId}]`, err.message); onDisconnect(connId); });
 
-    ws.on('close', () => {
-        handleDisconnect(connectionId);
-    });
-
-    ws.on('error', (err) => {
-        console.error(`Connection ${connectionId} error:`, err.message);
-        handleDisconnect(connectionId);
-    });
-
-    // Send welcome message with connection ID
-    ws.send(JSON.stringify({
-        type: 'welcome',
-        connectionId: connectionId
-    }));
+  ws.send(JSON.stringify({ type: 'welcome', connId }));
 });
 
-function handleMessage(connectionId, ws, message) {
-    // Try to parse as JSON first (relay protocol)
-    try {
-        const json = JSON.parse(message);
-        handleRelayProtocol(connectionId, ws, json);
-        return;
-    } catch (e) {
-        // Not JSON, treat as raw game data
-    }
+// ── Message dispatcher ────────────────────────────────────────────────────
 
-    // Forward raw game data based on connection type
-    const conn = connections.get(connectionId);
-    if (!conn || !conn.roomId) return;
-
-    const room = rooms.get(conn.roomId);
-    if (!room) return;
-
-    if (conn.type === 'host') {
-        // Host is sending to a specific client or broadcast
-        // Format: clientId:message or just message for broadcast
-        if (message.includes('|TO|')) {
-            const [targetId, actualMessage] = message.split('|TO|');
-            const targetConn = connections.get(targetId);
-            if (targetConn && targetConn.ws.readyState === WebSocket.OPEN) {
-                targetConn.ws.send(actualMessage);
-            }
-        } else {
-            // Broadcast to all clients in room
-            room.clients.forEach((clientWs, clientId) => {
-                if (clientWs.readyState === WebSocket.OPEN) {
-                    clientWs.send(message);
-                }
-            });
-        }
-    } else if (conn.type === 'client') {
-        // Client sending to host - prepend their connection ID
-        if (room.host && room.host.readyState === WebSocket.OPEN) {
-            room.host.send(`${connectionId}|FROM|${message}`);
-        }
-    }
+function dispatch(connId, ws, msg) {
+  switch (msg.type) {
+    case 'hostRoom':    return cmdHostRoom(connId, ws, msg);
+    case 'joinRoom':    return cmdJoinRoom(connId, ws, msg);
+    case 'listRooms':   return cmdListRooms(ws);
+    case 'clientLeft':  return cmdLeave(connId);
+    case 'ping':        return ws.send(JSON.stringify({ type: 'pong' }));
+    case 'pong':        return; // ignore
+    default:
+      // All game messages — relay to everyone else in the room
+      relayToRoom(connId, msg);
+  }
 }
 
-function handleRelayProtocol(connectionId, ws, json) {
-    const conn = connections.get(connectionId);
-    if (!conn) return;
+// ── Commands ──────────────────────────────────────────────────────────────
 
-    switch (json.type) {
-        case 'host_room':
-            // Game server wants to host a room
-            hostRoom(connectionId, ws, json.roomId);
-            break;
+function cmdHostRoom(connId, ws, msg) {
+  const { room: roomName, sender: hostId, maxPlayers = MAX_PLAYERS, phantomCount = 2, playerName = 'Host', colorKey = 'cyan' } = msg;
 
-        case 'join_room':
-            // Client wants to join a room
-            joinRoom(connectionId, ws, json.roomId, json.playerName);
-            break;
+  if (!roomName || !hostId) return sendError(ws, 'hostRoom requires room and sender');
+  if (rooms.has(roomName)) return sendError(ws, `Room "${roomName}" already exists`);
 
-        case 'list_rooms':
-            // Client wants list of available rooms
-            listRooms(ws);
-            break;
+  const room = {
+    name: roomName,
+    hostId,
+    maxPlayers: Math.min(maxPlayers, MAX_PLAYERS),
+    phantomCount,
+    players: new Map(),
+    createdAt: Date.now(),
+    phase: 'lobby',
+  };
+  room.players.set(hostId, { ws, name: playerName, colorKey, connId });
+  rooms.set(roomName, room);
 
-        case 'close_room':
-            // Host wants to close their room
-            closeRoom(connectionId);
-            break;
+  const conn = connections.get(connId);
+  if (conn) { conn.playerId = hostId; conn.roomName = roomName; }
 
-        case 'game_data':
-            // Forward game data (wrapped in JSON for specific targeting)
-            forwardGameData(connectionId, json);
-            break;
-
-        case 'ping':
-            ws.send(JSON.stringify({ type: 'pong', timestamp: Date.now() }));
-            break;
-
-        default:
-            console.log(`Unknown message type: ${json.type}`);
-    }
+  console.log(`[room] created "${roomName}" by ${hostId} (max ${room.maxPlayers})`);
+  ws.send(JSON.stringify({ type: 'room_created', room: roomName }));
 }
 
-function hostRoom(connectionId, ws, roomId) {
-    const conn = connections.get(connectionId);
+function cmdJoinRoom(connId, ws, msg) {
+  const { room: roomName, sender: playerId, playerName = 'Unknown', colorKey = 'cyan' } = msg;
 
-    // Check if room already exists
-    if (rooms.has(roomId)) {
-        ws.send(JSON.stringify({
-            type: 'error',
-            message: 'Room already exists'
-        }));
-        return;
-    }
+  if (!roomName || !playerId) return sendError(ws, 'joinRoom requires room and sender');
 
-    // Create new room
-    rooms.set(roomId, {
-        host: ws,
-        hostId: connectionId,
-        clients: new Map(),
-        createdAt: Date.now()
+  const room = rooms.get(roomName);
+  if (!room) return sendError(ws, `Room "${roomName}" not found`);
+  if (room.players.size >= room.maxPlayers) return sendError(ws, 'Room is full');
+  if (room.phase !== 'lobby') return sendError(ws, 'Game already in progress');
+
+  room.players.set(playerId, { ws, name: playerName, colorKey, connId });
+  const conn = connections.get(connId);
+  if (conn) { conn.playerId = playerId; conn.roomName = roomName; }
+
+  console.log(`[room] "${roomName}" ← ${playerId} (${playerName}), now ${room.players.size}/${room.maxPlayers}`);
+
+  // Confirm to the joining player
+  ws.send(JSON.stringify({ type: 'joined_room', room: roomName }));
+
+  // Notify everyone else a player joined
+  broadcastExcept(room, playerId, {
+    type: 'clientJoined',
+    room: roomName,
+    sender: playerId,
+    playerName,
+    colorKey,
+  });
+
+  // Send current player list to the new player
+  const playerList = [...room.players.entries()].map(([pid, p]) => ({
+    id: pid,
+    name: p.name,
+    colorKey: p.colorKey,
+    isHost: pid === room.hostId,
+  }));
+  ws.send(JSON.stringify({ type: 'roomState', room: roomName, players: playerList }));
+}
+
+function cmdListRooms(ws) {
+  const list = [];
+  rooms.forEach((room, name) => {
+    list.push({
+      name,
+      playerCount: room.players.size,
+      maxPlayers: room.maxPlayers,
+      hostId: room.hostId,
+      phase: room.phase,
     });
-
-    conn.type = 'host';
-    conn.roomId = roomId;
-
-    console.log(`Room created: ${roomId} by ${connectionId}`);
-
-    ws.send(JSON.stringify({
-        type: 'room_created',
-        roomId: roomId
-    }));
+  });
+  ws.send(JSON.stringify({ type: 'roomList', rooms: list }));
 }
 
-function joinRoom(connectionId, ws, roomId, playerName) {
-    const conn = connections.get(connectionId);
-    const room = rooms.get(roomId);
+function cmdLeave(connId) {
+  const conn = connections.get(connId);
+  if (!conn) return;
+  onDisconnect(connId);
+}
 
-    if (!room) {
-        ws.send(JSON.stringify({
-            type: 'error',
-            message: 'Room not found'
-        }));
-        return;
+// ── Relay ─────────────────────────────────────────────────────────────────
+
+function relayToRoom(connId, msg) {
+  const conn = connections.get(connId);
+  if (!conn?.roomName) return;
+
+  const room = rooms.get(conn.roomName);
+  if (!room) return;
+
+  const senderId = conn.playerId;
+
+  // Update phase if startGame is relayed
+  if (msg.type === 'startGame') room.phase = 'playing';
+  if (msg.type === 'gameOver') room.phase = 'ended';
+
+  // Broadcast to everyone in the room except the sender
+  broadcastExcept(room, senderId, msg);
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+
+function broadcastExcept(room, excludeId, msg) {
+  const raw = JSON.stringify(msg);
+  room.players.forEach((player, pid) => {
+    if (pid === excludeId) return;
+    if (player.ws.readyState === WebSocket.OPEN) {
+      player.ws.send(raw);
     }
-
-    // Add client to room
-    room.clients.set(connectionId, ws);
-    conn.type = 'client';
-    conn.roomId = roomId;
-    conn.playerName = playerName;
-
-    console.log(`Client ${connectionId} (${playerName}) joined room ${roomId}`);
-
-    // Notify client
-    ws.send(JSON.stringify({
-        type: 'joined_room',
-        roomId: roomId
-    }));
-
-    // Notify host of new client
-    if (room.host && room.host.readyState === WebSocket.OPEN) {
-        room.host.send(JSON.stringify({
-            type: 'client_joined',
-            clientId: connectionId,
-            playerName: playerName
-        }));
-    }
+  });
 }
 
-function listRooms(ws) {
-    const roomList = [];
-    rooms.forEach((room, roomId) => {
-        roomList.push({
-            roomId: roomId,
-            playerCount: room.clients.size + 1, // +1 for host
-            createdAt: room.createdAt
-        });
-    });
-
-    ws.send(JSON.stringify({
-        type: 'room_list',
-        rooms: roomList
-    }));
+function sendError(ws, message) {
+  if (ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: 'error', message }));
+  }
 }
 
-function closeRoom(connectionId) {
-    const conn = connections.get(connectionId);
-    if (!conn || conn.type !== 'host') return;
+function onDisconnect(connId) {
+  const conn = connections.get(connId);
+  if (!conn) return;
+  connections.delete(connId);
 
-    const room = rooms.get(conn.roomId);
-    if (!room) return;
+  const { playerId, roomName } = conn;
+  if (!roomName) return;
 
-    // Notify all clients
-    room.clients.forEach((clientWs, clientId) => {
-        if (clientWs.readyState === WebSocket.OPEN) {
-            clientWs.send(JSON.stringify({
-                type: 'room_closed'
-            }));
-        }
-        const clientConn = connections.get(clientId);
-        if (clientConn) {
-            clientConn.roomId = null;
-            clientConn.type = null;
-        }
-    });
+  const room = rooms.get(roomName);
+  if (!room) return;
 
-    console.log(`Room closed: ${conn.roomId}`);
-    rooms.delete(conn.roomId);
-    conn.roomId = null;
-    conn.type = null;
+  room.players.delete(playerId);
+  console.log(`[room] "${roomName}" ← ${playerId} left, ${room.players.size} remain`);
+
+  if (room.players.size === 0) {
+    rooms.delete(roomName);
+    console.log(`[room] "${roomName}" closed (empty)`);
+    return;
+  }
+
+  // If host left, pick a new host
+  if (playerId === room.hostId) {
+    const newHostId = room.players.keys().next().value;
+    room.hostId = newHostId;
+    console.log(`[room] "${roomName}" new host: ${newHostId}`);
+  }
+
+  // Notify remaining players
+  broadcastExcept(room, null, {
+    type: 'clientLeft',
+    room: roomName,
+    sender: playerId,
+  });
 }
 
-function forwardGameData(connectionId, json) {
-    const conn = connections.get(connectionId);
-    if (!conn || !conn.roomId) return;
+// ── Maintenance ───────────────────────────────────────────────────────────
 
-    const room = rooms.get(conn.roomId);
-    if (!room) return;
-
-    const gameData = json.data;
-
-    if (conn.type === 'host') {
-        // Host sending to specific client or all
-        if (json.targetId) {
-            const targetConn = connections.get(json.targetId);
-            if (targetConn && targetConn.ws.readyState === WebSocket.OPEN) {
-                targetConn.ws.send(gameData);
-            }
-        } else {
-            // Broadcast to all clients
-            room.clients.forEach((clientWs) => {
-                if (clientWs.readyState === WebSocket.OPEN) {
-                    clientWs.send(gameData);
-                }
-            });
-        }
-    } else if (conn.type === 'client') {
-        // Client sending to host
-        if (room.host && room.host.readyState === WebSocket.OPEN) {
-            // Include sender info
-            room.host.send(JSON.stringify({
-                type: 'client_data',
-                clientId: connectionId,
-                data: gameData
-            }));
-        }
-    }
-}
-
-function handleDisconnect(connectionId) {
-    const conn = connections.get(connectionId);
-    if (!conn) return;
-
-    console.log(`Disconnected: ${connectionId}`);
-
-    if (conn.roomId) {
-        const room = rooms.get(conn.roomId);
-        if (room) {
-            if (conn.type === 'host') {
-                // Host disconnected - close the room
-                closeRoom(connectionId);
-            } else if (conn.type === 'client') {
-                // Client disconnected - remove from room
-                room.clients.delete(connectionId);
-
-                // Notify host
-                if (room.host && room.host.readyState === WebSocket.OPEN) {
-                    room.host.send(JSON.stringify({
-                        type: 'client_left',
-                        clientId: connectionId,
-                        playerName: conn.playerName
-                    }));
-                }
-            }
-        }
-    }
-
-    connections.delete(connectionId);
-}
-
-// Periodic cleanup of stale rooms
 setInterval(() => {
-    const now = Date.now();
-    const maxAge = 3600000; // 1 hour
+  const now = Date.now();
+  rooms.forEach((room, name) => {
+    if (now - room.createdAt > ROOM_TTL_MS) {
+      console.log(`[cleanup] removing stale room "${name}"`);
+      broadcastExcept(room, null, { type: 'roomClosed', room: name });
+      rooms.delete(name);
+    }
+  });
+}, CLEANUP_INTERVAL_MS);
 
-    rooms.forEach((room, roomId) => {
-        if (now - room.createdAt > maxAge && room.clients.size === 0) {
-            console.log(`Cleaning up stale room: ${roomId}`);
-            rooms.delete(roomId);
-        }
-    });
-}, 300000); // Check every 5 minutes
-
-// Keep alive ping
 setInterval(() => {
-    wss.clients.forEach((ws) => {
-        if (ws.readyState === WebSocket.OPEN) {
-            ws.ping();
-        }
-    });
-}, 30000);
+  wss.clients.forEach((ws) => {
+    if (ws.readyState === WebSocket.OPEN) ws.ping();
+  });
+}, PING_INTERVAL_MS);
 
-console.log('Relay server ready for connections!');
+console.log('[PhantomCrew] Relay server ready.');
