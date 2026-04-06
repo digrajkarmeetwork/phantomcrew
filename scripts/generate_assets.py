@@ -75,24 +75,33 @@ CATEGORY_DIRS = {
 
 # ── API providers ─────────────────────────────────────────────────────────────
 def generate_stability(prompt: str, width: int = 1024, height: int = 1024) -> bytes:
-    """Call Stability AI SDXL and return PNG bytes."""
-    url = 'https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image'
+    """Call Stability AI (v2beta Stable Image Core) and return PNG bytes."""
+    # Determine aspect ratio closest to requested dimensions
+    ratio = width / height
+    if ratio >= 1.7:
+        aspect = '16:9'
+    elif ratio >= 1.3:
+        aspect = '4:3'
+    elif ratio <= 0.6:
+        aspect = '9:16'
+    elif ratio <= 0.8:
+        aspect = '3:4'
+    else:
+        aspect = '1:1'
+
     resp = requests.post(
-        url,
-        headers={'Authorization': f'Bearer {STABILITY_KEY}', 'Accept': 'application/json'},
-        json={
-            'text_prompts': [{'text': f"{prompt}, {STYLE_BASELINE}", 'weight': 1}],
-            'cfg_scale': 7,
-            'height': min(height, 1024),
-            'width': min(width, 1024),
-            'samples': 1,
-            'steps': 30,
+        'https://api.stability.ai/v2beta/stable-image/generate/core',
+        headers={'Authorization': f'Bearer {STABILITY_KEY}', 'Accept': 'image/*'},
+        files={'none': ''},
+        data={
+            'prompt': f"{prompt}, {STYLE_BASELINE}",
+            'aspect_ratio': aspect,
+            'output_format': 'png',
         },
         timeout=60,
     )
     resp.raise_for_status()
-    data = resp.json()
-    return base64.b64decode(data['artifacts'][0]['base64'])
+    return resp.content
 
 
 def generate_dalle(prompt: str, size: str = '1024x1024') -> bytes:

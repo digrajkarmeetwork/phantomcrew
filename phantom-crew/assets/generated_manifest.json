@@ -1,0 +1,276 @@
+{
+  "generated_at": "2026-04-06T18:57:11.747374+00:00",
+  "tool": "stability-ai",
+  "assets": [
+    {
+      "category": "characters",
+      "file": "assets\\images\\characters\\guardian_idle_cyan.png",
+      "prompt_key": "guardian_idle_cyan",
+      "ok": false
+    },
+    {
+      "category": "characters",
+      "file": "assets\\images\\characters\\guardian_idle_red.png",
+      "prompt_key": "guardian_idle_red",
+      "ok": false
+    },
+    {
+      "category": "characters",
+      "file": "assets\\images\\characters\\guardian_idle_orange.png",
+      "prompt_key": "guardian_idle_orange",
+      "ok": false
+    },
+    {
+      "category": "characters",
+      "file": "assets\\images\\characters\\guardian_idle_purple.png",
+      "prompt_key": "guardian_idle_purple",
+      "ok": false
+    },
+    {
+      "category": "characters",
+      "file": "assets\\images\\characters\\guardian_idle_green.png",
+      "prompt_key": "guardian_idle_green",
+      "ok": false
+    },
+    {
+      "category": "characters",
+      "file": "assets\\images\\characters\\guardian_idle_pink.png",
+      "prompt_key": "guardian_idle_pink",
+      "ok": false
+    },
+    {
+      "category": "characters",
+      "file": "assets\\images\\characters\\guardian_idle_white.png",
+      "prompt_key": "guardian_idle_white",
+      "ok": false
+    },
+    {
+      "category": "characters",
+      "file": "assets\\images\\characters\\guardian_idle_yellow.png",
+      "prompt_key": "guardian_idle_yellow",
+      "ok": false
+    },
+    {
+      "category": "characters",
+      "file": "assets\\images\\characters\\guardian_ghost.png",
+      "prompt_key": "guardian_ghost",
+      "ok": false
+    },
+    {
+      "category": "characters",
+      "file": "assets\\images\\characters\\phantom_vent_enter.png",
+      "prompt_key": "phantom_vent_enter",
+      "ok": false
+    },
+    {
+      "category": "characters",
+      "file": "assets\\images\\characters\\phantom_kill_flash.png",
+      "prompt_key": "phantom_kill_flash",
+      "ok": false
+    },
+    {
+      "category": "map",
+      "file": "assets\\images\\map\\station_map_overview.png",
+      "prompt_key": "station_map_overview",
+      "ok": false
+    },
+    {
+      "category": "map",
+      "file": "assets\\images\\map\\floor_tile_metal.png",
+      "prompt_key": "floor_tile_metal",
+      "ok": false
+    },
+    {
+      "category": "map",
+      "file": "assets\\images\\map\\floor_tile_console.png",
+      "prompt_key": "floor_tile_console",
+      "ok": false
+    },
+    {
+      "category": "map",
+      "file": "assets\\images\\map\\wall_tile.png",
+      "prompt_key": "wall_tile",
+      "ok": false
+    },
+    {
+      "category": "map",
+      "file": "assets\\images\\map\\vent_grate_closed.png",
+      "prompt_key": "vent_grate_closed",
+      "ok": false
+    },
+    {
+      "category": "map",
+      "file": "assets\\images\\map\\vent_grate_open.png",
+      "prompt_key": "vent_grate_open",
+      "ok": false
+    },
+    {
+      "category": "map",
+      "file": "assets\\images\\map\\task_station_icon.png",
+      "prompt_key": "task_station_icon",
+      "ok": false
+    },
+    {
+      "category": "ui",
+      "file": "assets\\images\\ui\\main_menu_bg.png",
+      "prompt_key": "main_menu_bg",
+      "ok": false
+    },
+    {
+      "category": "ui",
+      "file": "assets\\images\\ui\\hud_panel_bottom.png",
+      "prompt_key": "hud_panel_bottom",
+      "ok": false
+    },
+    {
+      "category": "ui",
+      "file": "assets\\images\\ui\\kill_button.png",
+      "prompt_key": "kill_button",
+      "ok": false
+    },
+    {
+      "category": "ui",
+      "file": "assets\\images\\ui\\report_button.png",
+      "prompt_key": "report_button",
+      "ok": false
+    },
+    {
+      "category": "ui",
+      "file": "assets\\images\\ui\\vent_button.png",
+      "prompt_key": "vent_button",
+      "ok": false
+    },
+    {
+      "category": "ui",
+      "file": "assets\\images\\ui\\sabotage_button.png",
+      "prompt_key": "sabotage_button",
+      "ok": false
+    },
+    {
+      "category": "ui",
+      "file": "assets\\images\\ui\\meeting_button.png",
+      "prompt_key": "meeting_button",
+      "ok": false
+    },
+    {
+      "category": "ui",
+      "file": "assets\\images\\ui\\task_button.png",
+      "prompt_key": "task_button",
+      "ok": false
+    },
+    {
+      "category": "ui",
+      "file": "assets\\images\\ui\\vote_card.png",
+      "prompt_key": "vote_card",
+      "ok": false
+    },
+    {
+      "category": "ui",
+      "file": "assets\\images\\ui\\meeting_overlay.png",
+      "prompt_key": "meeting_overlay",
+      "ok": false
+    },
+    {
+      "category": "tasks",
+      "file": "assets\\images\\tasks\\navigation_calibration_bg.png",
+      "prompt_key": "navigation_calibration_bg",
+      "ok": false
+    },
+    {
+      "category": "tasks",
+      "file": "assets\\images\\tasks\\reactor_alignment_bg.png",
+      "prompt_key": "reactor_alignment_bg",
+      "ok": false
+    },
+    {
+      "category": "tasks",
+      "file": "assets\\images\\tasks\\power_routing_bg.png",
+      "prompt_key": "power_routing_bg",
+      "ok": false
+    },
+    {
+      "category": "tasks",
+      "file": "assets\\images\\tasks\\signal_boost_bg.png",
+      "prompt_key": "signal_boost_bg",
+      "ok": false
+    },
+    {
+      "category": "tasks",
+      "file": "assets\\images\\tasks\\id_verification_bg.png",
+      "prompt_key": "id_verification_bg",
+      "ok": false
+    },
+    {
+      "category": "cosmetics",
+      "file": "assets\\images\\cosmetics\\visor_standard.png",
+      "prompt_key": "visor_standard",
+      "ok": false
+    },
+    {
+      "category": "cosmetics",
+      "file": "assets\\images\\cosmetics\\visor_cracked.png",
+      "prompt_key": "visor_cracked",
+      "ok": false
+    },
+    {
+      "category": "cosmetics",
+      "file": "assets\\images\\cosmetics\\visor_holographic.png",
+      "prompt_key": "visor_holographic",
+      "ok": false
+    },
+    {
+      "category": "cosmetics",
+      "file": "assets\\images\\cosmetics\\visor_thermal.png",
+      "prompt_key": "visor_thermal",
+      "ok": false
+    },
+    {
+      "category": "cosmetics",
+      "file": "assets\\images\\cosmetics\\emblem_cmc.png",
+      "prompt_key": "emblem_cmc",
+      "ok": false
+    },
+    {
+      "category": "cosmetics",
+      "file": "assets\\images\\cosmetics\\emblem_star.png",
+      "prompt_key": "emblem_star",
+      "ok": false
+    },
+    {
+      "category": "cosmetics",
+      "file": "assets\\images\\cosmetics\\emblem_circuit.png",
+      "prompt_key": "emblem_circuit",
+      "ok": false
+    },
+    {
+      "category": "cosmetics",
+      "file": "assets\\images\\cosmetics\\emblem_rift.png",
+      "prompt_key": "emblem_rift",
+      "ok": false
+    },
+    {
+      "category": "role_reveal",
+      "file": "assets\\images\\ui\\guardian_reveal.png",
+      "prompt_key": "guardian_reveal",
+      "ok": false
+    },
+    {
+      "category": "role_reveal",
+      "file": "assets\\images\\ui\\phantom_reveal.png",
+      "prompt_key": "phantom_reveal",
+      "ok": false
+    },
+    {
+      "category": "end_screens",
+      "file": "assets\\images\\ui\\guardians_win.png",
+      "prompt_key": "guardians_win",
+      "ok": false
+    },
+    {
+      "category": "end_screens",
+      "file": "assets\\images\\ui\\phantoms_win.png",
+      "prompt_key": "phantoms_win",
+      "ok": false
+    }
+  ]
+}
