@@ -5,7 +5,7 @@ import 'game_protocol.dart';
 typedef MessageHandler = void Function(PhantomMessage msg);
 
 class RelayClient {
-  static const String defaultRelayUrl = 'wss://betweenus-iuh6.onrender.com';
+  static const String defaultRelayUrl = 'wss://phantomcrew-relay.onrender.com';
   static const Duration reconnectDelay = Duration(seconds: 3);
   static const Duration pingInterval = Duration(seconds: 25);
 
