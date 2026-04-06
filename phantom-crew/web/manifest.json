@@ -1,0 +1,36 @@
+{
+    "name": "PHANTOM CREW",
+    "short_name": "Phantom Crew",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#0a0a1a",
+    "theme_color": "#00e5cc",
+    "description": "Trust no one. The phantom is already among you. A sci-fi social deduction game for up to 8 players.",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false,
+    "categories": ["games", "entertainment"],
+    "icons": [
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/Icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}
