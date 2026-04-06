@@ -5,7 +5,7 @@ import '../models/player_model.dart';
 import '../../ui/theme.dart';
 import 'phantom_game.dart';
 
-/// Animated player component with bob, sway, flip, glow ring, and name label.
+/// Animated player component with bob, sway, flip, glow ring, shadow, and name label.
 class CrewPlayerComponent extends PositionComponent with HasGameReference<PhantomGame> {
   PlayerModel playerModel;
   final bool isLocalPlayer;
@@ -23,8 +23,9 @@ class CrewPlayerComponent extends PositionComponent with HasGameReference<Phanto
   // Smooth position interpolation for remote players
   Vector2 _targetPosition = Vector2.zero();
 
-  static const double _spriteW = 48;
-  static const double _spriteH = 56;
+  // Larger sprite size for detailed chibi characters
+  static const double _spriteW = 64;
+  static const double _spriteH = 72;
 
   CrewPlayerComponent({required this.playerModel, this.isLocalPlayer = false}) {
     size = Vector2(_spriteW, _spriteH);
@@ -125,14 +126,17 @@ class CrewPlayerComponent extends PositionComponent with HasGameReference<Phanto
     double scaleX = 1.0;
     double scaleY = 1.0;
     if (isWalking) {
-      scaleX = 1.0 + 0.04 * sin(_squashPhase);
-      scaleY = 1.0 - 0.04 * sin(_squashPhase);
+      scaleX = 1.0 + 0.03 * sin(_squashPhase);
+      scaleY = 1.0 - 0.03 * sin(_squashPhase);
     }
 
     // Bob offset
     final bobY = sin(_bobPhase) * (isWalking ? 3.0 : 1.5);
     // Ghost float
-    final floatY = isGhost ? sin(_bobPhase * 0.7) * 4.0 - 6.0 : 0.0;
+    final floatY = isGhost ? sin(_bobPhase * 0.7) * 5.0 - 8.0 : 0.0;
+
+    // ── Draw drop shadow (before transforms) ──
+    _drawDropShadow(canvas, isGhost);
 
     // Flip for direction
     if (_facingLeft) {
@@ -173,22 +177,36 @@ class CrewPlayerComponent extends PositionComponent with HasGameReference<Phanto
     _drawNameLabel(canvas);
   }
 
+  void _drawDropShadow(Canvas canvas, bool isGhost) {
+    // Elliptical shadow underneath the character
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: const Offset(0, 28),
+        width: 44,
+        height: 16,
+      ),
+      Paint()
+        ..color = Colors.black.withAlpha(isGhost ? 30 : 70)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
+    );
+  }
+
   void _drawGlowRing(Canvas canvas, Color color, bool isGhost) {
     final glowColor = isGhost
         ? Colors.cyan.withAlpha(30)
-        : color.withAlpha(50);
+        : color.withAlpha(40);
     // Outer glow
     canvas.drawOval(
-      Rect.fromCenter(center: const Offset(0, 20), width: 52, height: 18),
+      Rect.fromCenter(center: const Offset(0, 24), width: 56, height: 20),
       Paint()
         ..color = glowColor
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10),
     );
     // Inner ring
     canvas.drawOval(
-      Rect.fromCenter(center: const Offset(0, 20), width: 40, height: 14),
+      Rect.fromCenter(center: const Offset(0, 24), width: 44, height: 16),
       Paint()
-        ..color = color.withAlpha(isGhost ? 20 : 60)
+        ..color = color.withAlpha(isGhost ? 20 : 50)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.5,
     );
@@ -197,40 +215,47 @@ class CrewPlayerComponent extends PositionComponent with HasGameReference<Phanto
   void _drawFallbackCharacter(Canvas canvas, Color color, bool isGhost) {
     final bodyColor = isGhost ? Colors.cyan.withAlpha(80) : color;
 
-    // Body (rounded rect)
+    // Body (rounded rect — chibi proportions)
     final bodyRect = RRect.fromRectAndRadius(
-      Rect.fromCenter(center: const Offset(0, 4), width: 28, height: 34),
-      const Radius.circular(10),
+      Rect.fromCenter(center: const Offset(0, 2), width: 32, height: 38),
+      const Radius.circular(12),
     );
     canvas.drawRRect(bodyRect, Paint()..color = bodyColor);
 
-    // Visor (dark slit on the face area)
+    // Head (large circle — chibi style)
+    canvas.drawCircle(
+      const Offset(0, -18),
+      18,
+      Paint()..color = bodyColor,
+    );
+
+    // Visor (dark curved slit on the face)
     final visorRect = RRect.fromRectAndRadius(
-      Rect.fromCenter(center: const Offset(4, -4), width: 16, height: 8),
-      const Radius.circular(3),
+      Rect.fromCenter(center: const Offset(3, -18), width: 20, height: 10),
+      const Radius.circular(4),
     );
     canvas.drawRRect(visorRect, Paint()..color = const Color(0xFF1A2A4A));
     // Visor glow
     canvas.drawRRect(
       visorRect,
       Paint()
-        ..color = PhantomTheme.teal.withAlpha(isGhost ? 40 : 100)
+        ..color = PhantomTheme.teal.withAlpha(isGhost ? 40 : 120)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1,
+        ..strokeWidth = 1.5,
     );
 
     // Legs
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        Rect.fromCenter(center: const Offset(-7, 24), width: 10, height: 14),
-        const Radius.circular(4),
+        Rect.fromCenter(center: const Offset(-8, 26), width: 11, height: 16),
+        const Radius.circular(5),
       ),
       Paint()..color = bodyColor.withAlpha(isGhost ? 50 : 200),
     );
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        Rect.fromCenter(center: const Offset(7, 24), width: 10, height: 14),
-        const Radius.circular(4),
+        Rect.fromCenter(center: const Offset(8, 26), width: 11, height: 16),
+        const Radius.circular(5),
       ),
       Paint()..color = bodyColor.withAlpha(isGhost ? 50 : 200),
     );
@@ -238,8 +263,8 @@ class CrewPlayerComponent extends PositionComponent with HasGameReference<Phanto
     // Backpack
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        Rect.fromCenter(center: const Offset(-16, 4), width: 8, height: 18),
-        const Radius.circular(3),
+        Rect.fromCenter(center: const Offset(-18, 2), width: 10, height: 20),
+        const Radius.circular(4),
       ),
       Paint()..color = bodyColor.withAlpha(isGhost ? 40 : 160),
     );
@@ -252,31 +277,43 @@ class CrewPlayerComponent extends PositionComponent with HasGameReference<Phanto
         style: TextStyle(
           color: isLocalPlayer
               ? PhantomTheme.teal
-              : Colors.white.withAlpha(200),
-          fontSize: 10,
+              : Colors.white.withAlpha(220),
+          fontSize: 11,
           fontFamily: 'Exo2',
           fontWeight: isLocalPlayer ? FontWeight.bold : FontWeight.normal,
+          shadows: const [
+            Shadow(color: Color(0xFF000000), blurRadius: 4),
+            Shadow(color: Color(0xFF000000), blurRadius: 2),
+          ],
         ),
       ),
       textDirection: TextDirection.ltr,
     )..layout();
 
     // Background pill
-    final labelW = tp.width + 10;
-    final labelH = tp.height + 4;
+    final labelW = tp.width + 12;
+    final labelH = tp.height + 6;
     final labelRect = RRect.fromRectAndRadius(
       Rect.fromCenter(
-        center: const Offset(_spriteW / 2, _spriteH + 10),
+        center: const Offset(_spriteW / 2, _spriteH + 12),
         width: labelW,
         height: labelH,
       ),
-      const Radius.circular(6),
+      const Radius.circular(8),
     );
     canvas.drawRRect(labelRect, Paint()..color = const Color(0xCC0A0A1A));
+    // Subtle border
+    canvas.drawRRect(
+      labelRect,
+      Paint()
+        ..color = Colors.white.withAlpha(20)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.5,
+    );
 
     tp.paint(canvas, Offset(
       _spriteW / 2 - tp.width / 2,
-      _spriteH + 10 - tp.height / 2,
+      _spriteH + 12 - tp.height / 2,
     ));
   }
 

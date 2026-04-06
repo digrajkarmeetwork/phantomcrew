@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-06T18:57:11.747374+00:00",
+  "generated_at": "2026-04-06T20:18:54.250664+00:00",
   "tool": "stability-ai",
   "assets": [
     {
@@ -271,6 +271,12 @@
       "file": "assets\\images\\ui\\phantoms_win.png",
       "prompt_key": "phantoms_win",
       "ok": false
+    },
+    {
+      "category": "map",
+      "file": "assets\\images\\map\\station_map_full.png",
+      "prompt_key": "station_map_full",
+      "ok": true
     }
   ]
 }

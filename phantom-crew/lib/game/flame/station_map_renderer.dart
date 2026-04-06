@@ -4,24 +4,15 @@ import '../models/station_map.dart';
 import '../../ui/theme.dart';
 import 'phantom_game.dart';
 
-/// Tile size in world pixels.
-const double _tileSize = 64.0;
-
-/// Number of tiles along each axis.
-int get _tilesX => (kWorldScale / _tileSize).ceil();
-int get _tilesY => (kWorldScale / _tileSize).ceil();
-
-/// Renders the station map using tile sprites and decorative elements.
+/// Renders the station map using a full pre-rendered background image
+/// with interactive overlay elements (vents, task zones, labels, etc.).
 class StationMapRenderer extends PositionComponent with HasGameReference<PhantomGame> {
-  // Tile sprites (loaded from existing assets)
-  Sprite? _floorTile;
-  Sprite? _wallTile;
-  Sprite? _consoleTile;
+  // Full station map background
+  Sprite? _mapBackground;
+
+  // Overlay sprites
   Sprite? _ventClosed;
   Sprite? _taskIcon;
-
-  // Pre-computed tile grid: 0=void, 1=floor, 2=wall_edge, 3=console
-  late List<List<int>> _tileGrid;
 
   @override
   Future<void> onLoad() async {
@@ -29,15 +20,12 @@ class StationMapRenderer extends PositionComponent with HasGameReference<Phantom
     size = Vector2.all(kWorldScale);
     position = Vector2.zero();
 
-    // Load tile sprites with fallback
-    _floorTile = await _loadSprite('images/map/floor_tile_metal.png');
-    _wallTile = await _loadSprite('images/map/wall_tile.png');
-    _consoleTile = await _loadSprite('images/map/floor_tile_console.png');
+    // Load the full map background
+    _mapBackground = await _loadSprite('images/map/station_map_full.png');
+
+    // Load overlay sprites
     _ventClosed = await _loadSprite('images/map/vent_grate_closed.png');
     _taskIcon = await _loadSprite('images/map/task_station_icon.png');
-
-    // Build tile grid
-    _buildTileGrid();
   }
 
   Future<Sprite?> _loadSprite(String path) async {
@@ -49,87 +37,26 @@ class StationMapRenderer extends PositionComponent with HasGameReference<Phantom
     }
   }
 
-  void _buildTileGrid() {
-    _tileGrid = List.generate(
-      _tilesY,
-      (_) => List.filled(_tilesX, 0),
-    );
-
-    for (int ty = 0; ty < _tilesY; ty++) {
-      for (int tx = 0; tx < _tilesX; tx++) {
-        final nx = (tx * _tileSize + _tileSize / 2) / kWorldScale;
-        final ny = (ty * _tileSize + _tileSize / 2) / kWorldScale;
-
-        if (!StationMap.isWalkable(nx, ny, padding: 0.005)) {
-          // Check if it's adjacent to a walkable tile (wall edge)
-          final isEdge = _isNearWalkable(nx, ny);
-          _tileGrid[ty][tx] = isEdge ? 2 : 0;
-        } else {
-          // Check if near a task zone (console tile)
-          final isConsole = _isNearTaskZone(nx, ny);
-          _tileGrid[ty][tx] = isConsole ? 3 : 1;
-        }
-      }
-    }
-  }
-
-  bool _isNearWalkable(double nx, double ny) {
-    const step = 0.04;
-    return StationMap.isWalkable(nx - step, ny, padding: 0.005) ||
-        StationMap.isWalkable(nx + step, ny, padding: 0.005) ||
-        StationMap.isWalkable(nx, ny - step, padding: 0.005) ||
-        StationMap.isWalkable(nx, ny + step, padding: 0.005);
-  }
-
-  bool _isNearTaskZone(double nx, double ny) {
-    for (final zone in StationMap.taskZones.values) {
-      final dx = zone.dx - nx;
-      final dy = zone.dy - ny;
-      if (dx * dx + dy * dy < 0.002) return true;
-    }
-    return false;
-  }
-
   @override
   void render(Canvas canvas) {
     super.render(canvas);
 
-    // Draw space background
+    // Draw space background (visible around station edges)
     canvas.drawRect(
       const Rect.fromLTWH(0, 0, kWorldScale, kWorldScale),
       Paint()..color = const Color(0xFF040810),
     );
 
-    // Draw tiles
-    for (int ty = 0; ty < _tilesY; ty++) {
-      for (int tx = 0; tx < _tilesX; tx++) {
-        final tileType = _tileGrid[ty][tx];
-        if (tileType == 0) continue;
-
-        final pos = Vector2(tx * _tileSize, ty * _tileSize);
-        final tileSize = Vector2.all(_tileSize);
-
-        switch (tileType) {
-          case 1: // Floor
-            if (_floorTile != null) {
-              _floorTile!.render(canvas, position: pos, size: tileSize);
-            } else {
-              _drawFallbackTile(canvas, pos, const Color(0xFF111827));
-            }
-          case 2: // Wall edge
-            if (_wallTile != null) {
-              _wallTile!.render(canvas, position: pos, size: tileSize);
-            } else {
-              _drawFallbackTile(canvas, pos, const Color(0xFF1A2540));
-            }
-          case 3: // Console (near task zones)
-            if (_consoleTile != null) {
-              _consoleTile!.render(canvas, position: pos, size: tileSize);
-            } else {
-              _drawFallbackTile(canvas, pos, const Color(0xFF0F1F2E));
-            }
-        }
-      }
+    // Draw the full station map image
+    if (_mapBackground != null) {
+      _mapBackground!.render(
+        canvas,
+        position: Vector2.zero(),
+        size: Vector2.all(kWorldScale),
+      );
+    } else {
+      // Fallback: draw rooms as filled rects
+      _drawFallbackMap(canvas);
     }
 
     // Draw room labels
@@ -151,19 +78,34 @@ class StationMapRenderer extends PositionComponent with HasGameReference<Phantom
     _drawDeadBodies(canvas);
   }
 
-  void _drawFallbackTile(Canvas canvas, Vector2 pos, Color color) {
-    canvas.drawRect(
-      Rect.fromLTWH(pos.x, pos.y, _tileSize, _tileSize),
-      Paint()..color = color,
-    );
-    // Subtle grid line
-    canvas.drawRect(
-      Rect.fromLTWH(pos.x, pos.y, _tileSize, _tileSize),
-      Paint()
-        ..color = const Color(0xFF1E2D45).withAlpha(40)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 0.5,
-    );
+  void _drawFallbackMap(Canvas canvas) {
+    // Draw corridors
+    for (final corridor in StationMap.corridors) {
+      final pixelRect = Rect.fromLTWH(
+        corridor.left * kWorldScale,
+        corridor.top * kWorldScale,
+        corridor.width * kWorldScale,
+        corridor.height * kWorldScale,
+      );
+      canvas.drawRect(pixelRect, Paint()..color = const Color(0xFF111827));
+    }
+    // Draw rooms
+    for (final room in StationMap.rooms.values) {
+      final pixelRect = Rect.fromLTWH(
+        room.left * kWorldScale,
+        room.top * kWorldScale,
+        room.width * kWorldScale,
+        room.height * kWorldScale,
+      );
+      canvas.drawRect(pixelRect, Paint()..color = const Color(0xFF0D1520));
+      canvas.drawRect(
+        pixelRect,
+        Paint()
+          ..color = const Color(0xFF1E2D45)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2,
+      );
+    }
   }
 
   void _drawRoomLabels(Canvas canvas) {
@@ -172,14 +114,19 @@ class StationMapRenderer extends PositionComponent with HasGameReference<Phantom
       final cx = r.center.dx * kWorldScale;
       final cy = r.top * kWorldScale + 24;
 
+      // Label background for readability
       final tp = TextPainter(
         text: TextSpan(
           text: entry.key.toUpperCase(),
           style: TextStyle(
-            color: const Color(0xFF4A6A8A).withAlpha(180),
-            fontSize: 14,
+            color: const Color(0xFF8AC8E8).withAlpha(220),
+            fontSize: 13,
             fontFamily: 'Orbitron',
             letterSpacing: 2,
+            shadows: const [
+              Shadow(color: Color(0xFF000000), blurRadius: 6),
+              Shadow(color: Color(0xFF000000), blurRadius: 3),
+            ],
           ),
         ),
         textDirection: TextDirection.ltr,
@@ -193,7 +140,7 @@ class StationMapRenderer extends PositionComponent with HasGameReference<Phantom
       final pos = entry.value;
       final wx = pos.dx * kWorldScale;
       final wy = pos.dy * kWorldScale;
-      final ventSize = Vector2(40, 28);
+      final ventSize = Vector2(48, 34);
 
       if (_ventClosed != null) {
         _ventClosed!.render(
@@ -205,8 +152,8 @@ class StationMapRenderer extends PositionComponent with HasGameReference<Phantom
         // Fallback vent
         final rect = Rect.fromCenter(
           center: Offset(wx, wy),
-          width: 40,
-          height: 28,
+          width: 48,
+          height: 34,
         );
         canvas.drawRRect(
           RRect.fromRectAndRadius(rect, const Radius.circular(4)),
@@ -222,8 +169,8 @@ class StationMapRenderer extends PositionComponent with HasGameReference<Phantom
         // Grate lines
         for (int i = -1; i <= 1; i++) {
           canvas.drawLine(
-            Offset(wx - 14, wy + i * 7.0),
-            Offset(wx + 14, wy + i * 7.0),
+            Offset(wx - 16, wy + i * 8.0),
+            Offset(wx + 16, wy + i * 8.0),
             Paint()
               ..color = PhantomTheme.purple.withAlpha(100)
               ..strokeWidth = 1.5,
@@ -241,27 +188,29 @@ class StationMapRenderer extends PositionComponent with HasGameReference<Phantom
       if (_taskIcon != null) {
         _taskIcon!.render(
           canvas,
-          position: Vector2(wx - 16, wy - 16),
-          size: Vector2.all(32),
+          position: Vector2(wx - 18, wy - 18),
+          size: Vector2.all(36),
         );
       }
 
-      // Outer glow ring
+      // Pulsing outer glow ring
       canvas.drawCircle(
         Offset(wx, wy),
-        20,
-        Paint()..color = PhantomTheme.teal.withAlpha(30),
+        22,
+        Paint()
+          ..color = PhantomTheme.teal.withAlpha(25)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
       );
       // Inner dot
       canvas.drawCircle(
         Offset(wx, wy),
-        6,
+        5,
         Paint()..color = PhantomTheme.teal.withAlpha(200),
       );
       // Ring
       canvas.drawCircle(
         Offset(wx, wy),
-        12,
+        14,
         Paint()
           ..color = PhantomTheme.teal.withAlpha(100)
           ..style = PaintingStyle.stroke
@@ -283,8 +232,10 @@ class StationMapRenderer extends PositionComponent with HasGameReference<Phantom
 
       // Pulsing outer ring
       canvas.drawCircle(
-        Offset(wx, wy), 24,
-        Paint()..color = PhantomTheme.red.withAlpha(40),
+        Offset(wx, wy), 26,
+        Paint()
+          ..color = PhantomTheme.red.withAlpha(40)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
       );
       // Inner marker
       canvas.drawCircle(
@@ -350,6 +301,13 @@ class StationMapRenderer extends PositionComponent with HasGameReference<Phantom
       final wy = body.y * kWorldScale;
       final color = PhantomTheme.playerColors[body.victimColorKey] ?? Colors.red;
 
+      // Shadow
+      canvas.drawOval(
+        Rect.fromCenter(center: Offset(wx, wy + 6), width: 36, height: 14),
+        Paint()
+          ..color = Colors.black.withAlpha(80)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
+      );
       // Body shape (fallen crew member)
       canvas.drawRRect(
         RRect.fromRectAndRadius(
