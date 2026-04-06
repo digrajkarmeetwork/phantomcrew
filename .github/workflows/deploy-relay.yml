@@ -2,7 +2,7 @@ name: Deploy Relay Server
 
 on:
   push:
-    branches: [claude/game-redesign-original-assets-1FjHj, main]
+    branches: [master, main]
     paths:
       - 'relay-server/**'
   workflow_dispatch:

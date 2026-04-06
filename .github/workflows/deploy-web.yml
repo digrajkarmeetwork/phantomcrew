@@ -2,7 +2,7 @@ name: Deploy Web to GitHub Pages
 
 on:
   push:
-    branches: [claude/game-redesign-original-assets-1FjHj, main]
+    branches: [master, main]
   workflow_dispatch:
 
 # Allow one concurrent deployment
@@ -44,7 +44,7 @@ jobs:
           flutter build web \
             --release \
             --web-renderer canvaskit \
-            --base-href "/phantom-crew/"
+            --base-href "/phantomcrew/"
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
