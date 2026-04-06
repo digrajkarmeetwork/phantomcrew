@@ -11,6 +11,7 @@ import 'role_reveal.dart';
 const List<String> _colorKeys = ['cyan', 'red', 'orange', 'purple', 'green', 'pink', 'white', 'yellow'];
 const List<String> _visors = ['standard', 'cracked', 'holographic', 'thermal'];
 const List<String> _emblems = ['cmc', 'star', 'circuit', 'rift'];
+const List<String> _botNames = ['Nova', 'Echo', 'Vega', 'Orion', 'Flux', 'Pulse', 'Zenith'];
 
 class LobbyScreen extends StatefulWidget {
   final GameState state;
@@ -26,6 +27,7 @@ class _LobbyScreenState extends State<LobbyScreen> {
   String _selectedColor = 'cyan';
   String _selectedVisor = 'standard';
   String _selectedEmblem = 'cmc';
+  int _botCount = 0;
 
   @override
   void initState() {
@@ -87,6 +89,34 @@ class _LobbyScreenState extends State<LobbyScreen> {
     ));
   }
 
+  void _addBot() {
+    final maxPlayers = widget.state.room?.maxPlayers ?? 8;
+    if (widget.state.players.length >= maxPlayers) return;
+    if (_botCount >= _botNames.length) return;
+
+    final name = _botNames[_botCount];
+    final usedColors = widget.state.players.values.map((p) => p.colorKey).toSet();
+    final color = _colorKeys.firstWhere((c) => !usedColors.contains(c), orElse: () => 'cyan');
+    final botId = 'bot_${name.toLowerCase()}';
+
+    widget.state.updatePlayer(PlayerModel(
+      id: botId,
+      name: '$name (Bot)',
+      colorKey: color,
+      isBot: true,
+    ));
+    setState(() => _botCount++);
+  }
+
+  void _removeBot() {
+    if (_botCount <= 0) return;
+    final bots = widget.state.players.values.where((p) => p.isBot).toList();
+    if (bots.isEmpty) return;
+    widget.state.players.remove(bots.last.id);
+    widget.state.notify();
+    setState(() => _botCount--);
+  }
+
   @override
   Widget build(BuildContext context) {
     final room = widget.state.room;
@@ -138,6 +168,29 @@ class _LobbyScreenState extends State<LobbyScreen> {
                   ),
                   const SizedBox(height: 12),
                   ...players.map((p) => _PlayerRow(player: p, isLocal: p.id == widget.state.localPlayerId)),
+                  if (widget.state.isHost) ...[
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: players.length < (room?.maxPlayers ?? 8) ? _addBot : null,
+                            icon: const Icon(Icons.smart_toy_outlined, size: 18),
+                            label: const Text('ADD BOT'),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: _botCount > 0 ? _removeBot : null,
+                            icon: const Icon(Icons.remove_circle_outline, size: 18),
+                            label: const Text('REMOVE BOT'),
+                            style: OutlinedButton.styleFrom(foregroundColor: PhantomTheme.red),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 24),
                   // Cosmetics
                   const Text('CUSTOMIZE', style: TextStyle(color: PhantomTheme.textSecondary, fontSize: 12, letterSpacing: 1)),
@@ -202,7 +255,7 @@ class _LobbyScreenState extends State<LobbyScreen> {
             Padding(
               padding: const EdgeInsets.all(24),
               child: ElevatedButton(
-                onPressed: players.length >= 2 ? _startGame : null,
+                onPressed: players.length >= 2 || _botCount > 0 ? _startGame : null,
                 child: const Text('START MISSION'),
               ),
             )
@@ -254,6 +307,16 @@ class _PlayerRow extends StatelessWidget {
               fontWeight: isLocal ? FontWeight.bold : FontWeight.normal,
             ),
           )),
+          if (player.isBot)
+            Container(
+              margin: const EdgeInsets.only(right: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: PhantomTheme.teal.withAlpha(40),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const Text('BOT', style: TextStyle(color: PhantomTheme.teal, fontSize: 10, fontFamily: 'Orbitron')),
+            ),
           if (player.isHost)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),

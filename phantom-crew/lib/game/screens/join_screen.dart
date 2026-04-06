@@ -29,6 +29,9 @@ class _JoinScreenState extends State<JoinScreen> {
 
   Future<void> _connect() async {
     setState(() { _loading = true; _error = null; });
+    widget.relay.onConnectionChange = (connected, error) {
+      widget.state.setConnected(connected, error: error);
+    };
     widget.relay.addHandler(_onMessage);
     await widget.relay.connect();
     if (!widget.relay.isConnected) {

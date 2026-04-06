@@ -32,6 +32,9 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
     if (!_valid) return;
     setState(() => _connecting = true);
 
+    widget.relay.onConnectionChange = (connected, error) {
+      widget.state.setConnected(connected, error: error);
+    };
     await widget.relay.connect();
     if (!widget.relay.isConnected) {
       if (mounted) {

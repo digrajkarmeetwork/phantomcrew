@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import '../models/game_state.dart';
 import '../models/player_model.dart';
@@ -125,6 +126,11 @@ class RoomManager {
       sender: state.localPlayerId,
       data: {'totalTasks': totalTasks},
     ));
+
+    // Host must also update local state (relay doesn't echo back to sender)
+    state.totalTasks = totalTasks;
+    state.room?.phase = RoomPhase.roleReveal;
+    state.notify();
   }
 
   // ── Guest actions ─────────────────────────────────────────────────────────
@@ -388,6 +394,7 @@ class RoomManager {
       }
     }
     state.startMeeting(msg.sender ?? '', 'body');
+    _scheduleBotVotes();
   }
 
   void _onVentAction(PhantomMessage msg) {
@@ -485,6 +492,31 @@ class RoomManager {
 
   void _onEmergencyMeeting(PhantomMessage msg) {
     state.startMeeting(msg.sender ?? '', msg.data['reason'] as String? ?? 'button');
+    _scheduleBotVotes();
+  }
+
+  void _scheduleBotVotes() {
+    if (!state.isHost) return;
+    final rng = Random();
+    final bots = state.alivePlayers.where((p) => p.isBot).toList();
+    for (final bot in bots) {
+      final delay = 3 + rng.nextInt(8); // 3-10 seconds
+      Timer(Duration(seconds: delay), () {
+        if (!state.meetingActive) return;
+        final alive = state.alivePlayers.where((p) => p.id != bot.id).toList();
+        // Bots vote randomly: 40% skip, 60% vote for someone
+        String target;
+        if (alive.isEmpty || rng.nextDouble() < 0.4) {
+          target = 'skip';
+        } else {
+          target = alive[rng.nextInt(alive.length)].id;
+        }
+        state.recordVote(bot.id, target);
+        // Check if all voted
+        final allVoted = state.alivePlayers.every((p) => p.hasVoted);
+        if (allVoted) _resolveMeeting();
+      });
+    }
   }
 
   void _onChat(PhantomMessage msg) {

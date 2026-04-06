@@ -12,6 +12,7 @@ class PlayerModel {
   PlayerState state;
   bool isHost;
   bool isLocal;
+  bool isBot;
   double x;
   double y;
   String animation; // idle, walk_left, walk_right, vent_enter, vent_exit
@@ -41,6 +42,7 @@ class PlayerModel {
     this.state = PlayerState.alive,
     this.isHost = false,
     this.isLocal = false,
+    this.isBot = false,
     this.x = 0.5,
     this.y = 0.5,
     this.animation = 'idle',
@@ -94,6 +96,7 @@ class PlayerModel {
     PlayerState? state,
     bool? isHost,
     bool? isLocal,
+    bool? isBot,
     double? x,
     double? y,
     String? animation,
@@ -117,6 +120,7 @@ class PlayerModel {
       state: state ?? this.state,
       isHost: isHost ?? this.isHost,
       isLocal: isLocal ?? this.isLocal,
+      isBot: isBot ?? this.isBot,
       x: x ?? this.x,
       y: y ?? this.y,
       animation: animation ?? this.animation,
@@ -141,6 +145,7 @@ class PlayerModel {
     'role': role.name,
     'state': state.name,
     'isHost': isHost,
+    'isBot': isBot,
     'x': x,
     'y': y,
     'animation': animation,
@@ -165,6 +170,7 @@ class PlayerModel {
       role: PlayerRole.values.firstWhere((r) => r.name == json['role'], orElse: () => PlayerRole.guardian),
       state: PlayerState.values.firstWhere((s) => s.name == json['state'], orElse: () => PlayerState.alive),
       isHost: json['isHost'] as bool? ?? false,
+      isBot: json['isBot'] as bool? ?? false,
       x: (json['x'] as num?)?.toDouble() ?? 0.5,
       y: (json['y'] as num?)?.toDouble() ?? 0.5,
       animation: json['animation'] as String? ?? 'idle',

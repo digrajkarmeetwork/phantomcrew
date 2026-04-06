@@ -6,9 +6,9 @@
 
 ## 1. What Is This Project?
 
-**Phantom Crew** is a mobile-first social deduction game for **iOS and Android**, supporting **up to 8 players** simultaneously over the internet. It is a complete remake of the original "BetweenUs" prototype — rebranded, redesigned, with an original backstory, original AI-generated art assets, and rebuilt for mobile devices.
+**Phantom Crew** is a web-first social deduction game (PWA), also targeting **iOS and Android**, supporting **up to 8 players** simultaneously over the internet. It is a complete remake of the original "BetweenUs" prototype — rebranded, redesigned, with an original backstory, original AI-generated art assets, and a proper Flame engine rendering pipeline.
 
-The original BetweenUs was a Java/LibGDX desktop game that used copied Among Us sprites and had no original identity. This project replaces everything: the name, the art, the story, and the platform target.
+The original BetweenUs Java/LibGDX codebase has been **fully removed** from this repo. This project replaces everything: the name, the art, the story, and the platform target.
 
 ---
 
@@ -20,24 +20,15 @@ The original BetweenUs was a Java/LibGDX desktop game that used copied Among Us 
 | **Tagline** | "Trust no one. The phantom is already among you." |
 | **Genre** | Social Deduction / Multiplayer |
 | **Players** | 2–8 (optimised for 8) |
-| **Platforms** | Android (primary), iOS |
+| **Platforms** | Web/PWA (primary), Android, iOS |
 | **Target Age** | 13+ |
 | **Tone** | Sci-fi thriller, tense, atmospheric |
 
 ---
 
-## 3. Original Game Summary (BetweenUs — What We're Replacing)
+## 3. Original Game (BetweenUs — Replaced)
 
-The original codebase is a **Java + LibGDX** desktop game:
-- Inspired directly by Among Us, copying its visual identity (Polus map, astronaut character sprites from spriters-resource.com)
-- WebSocket relay server (Node.js) for internet multiplayer, UDP for LAN
-- 4 tasks: Admin (swipe card), Comms (reset modem), Electrical (wire matching), Reactor (number sequence)
-- Imposters can vent, sabotage lights, trigger reactor meltdown
-- 50+ hat cosmetics
-- Emergency meetings with 60-second voting timer
-- Desktop only (LWJGL), no mobile support
-
-**Everything from this prototype must be replaced.** The only reusable elements are the game-logic concepts (roles, tasks, voting, meetings).
+The original Java/LibGDX codebase has been **fully deleted** from this repo. It was a desktop-only Among Us clone with copied sprites. The only element carried forward is the relay server concept (`relay-server/server.js`), which was extended for the new game.
 
 ---
 
@@ -155,76 +146,94 @@ Each Guardian is assigned 3 random tasks from:
 
 ## 9. Technical Architecture
 
-### Target Stack
+### Current Stack
 
-| Layer | Technology | Rationale |
+| Layer | Technology | Notes |
 |---|---|---|
-| **Game Engine** | Flutter + Flame 1.x | Single codebase → iOS + Android; Dart; mature 2D game framework |
-| **Backend / Relay** | Node.js + WebSocket (existing relay-server/) | Already working; extend for 8-player capacity |
-| **Real-time Sync** | WebSocket JSON protocol (extend existing) | Low latency; no third-party dependency |
-| **Asset Pipeline** | AI-generated (Stability AI / DALL-E / Replicate) | Original assets; see Section 11 |
-| **State Management** | Riverpod (Flutter) | Clean reactive state for game entities |
-| **Local Storage** | shared_preferences | Player name, cosmetics, settings persistence |
-| **Audio** | flame_audio | In-game SFX and ambient music |
+| **Game Engine** | Flutter + Flame 1.x | Single codebase → Web, Android, iOS |
+| **Rendering** | Flame FlameGame + CameraComponent | Tile map, animated sprites, particles, lighting |
+| **Backend / Relay** | Node.js + WebSocket (`relay-server/`) | Deployed on Render.com (free tier) |
+| **Real-time Sync** | WebSocket JSON protocol | Relay is a message router, not game logic host |
+| **Asset Pipeline** | AI-generated (Stability AI) | 45 game assets generated; see Section 11 |
+| **State Management** | ChangeNotifier (GameState) | Reactive state with listener pattern |
+| **Deployment** | GitHub Pages (web), Render (relay) | Auto-deploy via GitHub Actions on push to `master` |
 
-### Project Structure (Target)
+### Flame Engine Architecture
+
+The game rendering uses a proper Flame component tree:
+
+```
+PhantomGame (FlameGame)
+├── World
+│   ├── StationMapRenderer       ← Tile-based map (floor/wall/console tiles)
+│   ├── CrewPlayerComponent[]    ← Animated player sprites (one per player)
+│   ├── EffectsSystem            ← Particle effects (kills, vents, sabotage, dust)
+│   └── LightingSystem           ← Ambient glow + blackout fog of war
+├── CameraComponent              ← Follows local player with lerp smoothing
+└── Overlays
+    └── 'hud' → GameHudOverlay  ← Flutter widget HUD on top of game canvas
+```
+
+**Key concepts:**
+- **World scale**: StationMap normalized 0..1 coords × 2048 = world pixels (`kWorldScale`)
+- **Coordinate conversion**: `toWorld(nx, ny)` / `toNorm(world)` for normalized ↔ pixel
+- **Sprite animation**: Programmatic (bob, sway, squash/stretch, flip) from single-image PNGs — no sprite sheets needed
+- **Remote players**: Position lerp interpolation (`dt * 12.0`) for smooth movement
+- **Bot AI**: Random walk targets, auto-complete tasks, phantom kills, auto-voting in meetings
+
+### Project Structure (Actual)
 ```
 phantom-crew/
 ├── CLAUDE.md                    ← This file
 ├── lib/
 │   ├── main.dart                ← App entry point
 │   ├── game/
-│   │   ├── phantom_crew_game.dart  ← Root Flame game class
-│   │   ├── components/          ← Flame components
-│   │   │   ├── player.dart
-│   │   │   ├── phantom_agent.dart
-│   │   │   ├── station_map.dart
-│   │   │   ├── vent.dart
-│   │   │   └── task_zone.dart
+│   │   ├── flame/               ← Flame engine rendering layer
+│   │   │   ├── phantom_game.dart       ← Root FlameGame class, camera, bot AI
+│   │   │   ├── station_map_renderer.dart ← Tile-based map rendering
+│   │   │   ├── player_component.dart   ← Animated player sprites
+│   │   │   ├── effects_system.dart     ← Particle effects (kill, vent, sabotage)
+│   │   │   ├── lighting_system.dart    ← Ambient glow + blackout fog of war
+│   │   │   └── game_hud.dart           ← Flutter widget HUD overlay
 │   │   ├── screens/
-│   │   │   ├── main_menu.dart
-│   │   │   ├── lobby.dart
-│   │   │   ├── game_screen.dart
-│   │   │   ├── meeting.dart
-│   │   │   ├── role_reveal.dart
-│   │   │   └── end_game.dart
-│   │   ├── tasks/
-│   │   │   ├── navigation_calibration.dart
-│   │   │   ├── reactor_alignment.dart
-│   │   │   ├── power_routing.dart
-│   │   │   └── ... (one file per task)
+│   │   │   ├── home_screen.dart        ← Main menu
+│   │   │   ├── create_room.dart        ← Room creation
+│   │   │   ├── join_screen.dart        ← Join by room code
+│   │   │   ├── lobby_screen.dart       ← Pre-game lobby (host can add bots)
+│   │   │   ├── role_reveal_screen.dart ← Guardian/Phantom reveal
+│   │   │   ├── game_screen.dart        ← GameWidget wrapper (~100 lines)
+│   │   │   ├── meeting_screen.dart     ← Emergency assembly / voting
+│   │   │   └── end_screen.dart         ← Win/lose screen
+│   │   ├── tasks/               ← Task mini-games (TaskRegistry pattern)
 │   │   ├── network/
-│   │   │   ├── relay_client.dart   ← WebSocket relay client
-│   │   │   ├── game_protocol.dart  ← Message serialisation
-│   │   │   └── room_manager.dart
+│   │   │   ├── relay_client.dart       ← WebSocket client
+│   │   │   └── room_manager.dart       ← Game protocol / message handling
 │   │   └── models/
-│   │       ├── player_model.dart
-│   │       ├── room_model.dart
-│   │       └── game_state.dart
+│   │       ├── player_model.dart       ← Player state (includes isBot flag)
+│   │       ├── room_model.dart         ← Room/phase/sabotage state
+│   │       ├── game_state.dart         ← Central game state (ChangeNotifier)
+│   │       └── station_map.dart        ← Map geometry (rooms, corridors, vents)
 │   └── ui/
 │       ├── widgets/
-│       └── theme.dart
+│       └── theme.dart           ← PhantomTheme colours + player colour map
 ├── assets/
 │   ├── images/
-│   │   ├── characters/          ← Guardian sprites (all 8 colours)
-│   │   ├── phantoms/            ← Phantom Agent sprites
-│   │   ├── map/                 ← Station map tiles and background
-│   │   ├── tasks/               ← Task UI imagery
-│   │   ├── ui/                  ← Buttons, panels, HUD elements
-│   │   ├── cosmetics/           ← Visor/emblem/glow options
-│   │   └── fx/                  ← Effects (kill flash, vent glitch, etc.)
-│   ├── audio/
-│   │   ├── sfx/
-│   │   └── music/
-│   └── fonts/
-├── relay-server/                ← Existing Node.js relay (extend, don't replace)
+│   │   ├── characters/          ← Guardian idle sprites (8 colours + ghost)
+│   │   ├── map/                 ← Floor tile, wall tile, console tile, vent grate, task icon
+│   │   ├── tasks/               ← Task UI backgrounds
+│   │   ├── ui/                  ← Buttons, panels, role reveal, win/lose screens
+│   │   └── fx/                  ← Kill flash, vent glitch effects
+│   └── fonts/                   ← Orbitron, Exo2
+├── relay-server/                ← Node.js WebSocket relay (deployed on Render)
 │   ├── server.js
 │   └── package.json
+├── .github/workflows/
+│   ├── deploy-web.yml           ← GitHub Pages auto-deploy on push to master
+│   └── deploy-relay.yml         ← Render deploy hook
+├── web/
 ├── android/
 ├── ios/
-├── pubspec.yaml
-└── scripts/
-    └── generate_assets.py       ← AI asset generation script
+└── pubspec.yaml
 ```
 
 ### Multiplayer Protocol (Extend Existing Relay)
@@ -350,8 +359,11 @@ game sprite, transparent background, front-facing"
 ## 12. Development Workflow
 
 ### Branches
-- **`master`** — stable, do not push breaking changes
-- **`claude/game-redesign-original-assets-1FjHj`** — active development branch (current)
+- **`master`** — active development branch; auto-deploys to GitHub Pages on push
+
+### Deployment
+- **Web (GitHub Pages)**: Push to `master` triggers `.github/workflows/deploy-web.yml` → builds Flutter web → deploys to `https://digrajkarmeetwork.github.io/phantomcrew/`
+- **Relay (Render)**: Free tier at `wss://phantomcrew-relay.onrender.com` — may cold-start after inactivity
 
 ### Always Do Before Pushing
 1. Run `flutter analyze` — zero errors
@@ -360,20 +372,18 @@ game sprite, transparent background, front-facing"
 
 ### Key Commands
 ```bash
-# Flutter
+# Flutter (run from phantom-crew/ subdirectory)
 flutter pub get             # Install deps
-flutter run                 # Run on connected device/emulator
-flutter build apk --release # Build Android APK
-flutter build ios --release # Build iOS (requires macOS + Xcode)
+flutter run -d chrome       # Run in Chrome for web testing
+flutter build web --release --base-href "/phantomcrew/"  # Build for GitHub Pages
 flutter test               # Run tests
 flutter analyze            # Static analysis
 
-# Relay server
+# Relay server (local dev)
 cd relay-server && npm install && npm start
 
 # Asset generation (requires API keys in .env)
 python3 scripts/generate_assets.py --category characters
-python3 scripts/generate_assets.py --category map
 python3 scripts/generate_assets.py --all
 ```
 
@@ -400,25 +410,19 @@ REPLICATE_API_TOKEN=r8_...
 ## 14. Out of Scope (v1.0)
 
 - Voice chat (text chat only in meetings)
-- Single-player vs AI
 - Account system / leaderboards (guest play only in v1)
-- PC/desktop build (mobile only for v1)
 - More than 8 players
 - Custom map editor
+- Native mobile builds (web PWA is the primary target for v1)
 
 ---
 
-## 15. Existing Codebase Reference
+## 15. Key Implementation Notes
 
-The Java/LibGDX codebase in this repo is a **reference only** for game logic. Do not build on top of it for the mobile remake — create the Flutter project fresh. Useful reference files:
-
-| Java File | What to Learn From It |
-|---|---|
-| `core/src/com/server/Server.java` | Role assignment algorithm, win condition logic |
-| `core/src/com/server/Room.java` | Room state management |
-| `core/src/com/mmog/players/Player.java` | Player state fields |
-| `core/src/com/mmog/screens/GameScreen.java` | Game loop and rendering approach |
-| `relay-server/server.js` | **Reuse this directly** — extend, don't rewrite |
+- **Relay server** (`relay-server/server.js`): Message router only — it broadcasts messages to other clients in the room but does NOT echo back to the sender. The host must update its own local state directly after sending commands like `startGame`.
+- **Bot players**: Host can add bots in the lobby (names: Nova, Echo, Vega, Orion, Flux, Pulse, Zenith). Bots have `isBot: true` in PlayerModel. Bot AI runs in `PhantomGame._tickBots()` — random walk, auto-task-complete, phantom kills. Bot voting is handled in `RoomManager._scheduleBotVotes()`.
+- **Flame imports**: Use `import 'dart:async' as async_lib;` in Flame files to avoid Timer conflict. Use `package:flame/experimental.dart` for `Rectangle`.
+- **Coordinate system**: All game positions are normalized 0..1. Multiply by `kWorldScale` (2048) for world pixels. StationMap defines rooms/corridors as `Rect` in normalized coords.
 
 ---
 
@@ -435,4 +439,4 @@ Use these project slash commands:
 
 ---
 
-*Last updated: 2026-04-06 | Branch: claude/game-redesign-original-assets-1FjHj*
+*Last updated: 2026-04-06 | Branch: master | Deployed: https://digrajkarmeetwork.github.io/phantomcrew/*
