@@ -82,20 +82,24 @@ class _EndScreenState extends State<EndScreen> with SingleTickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     final guardiansWin = _guardiansWin;
-    final bgGradient = guardiansWin
-      ? const RadialGradient(center: Alignment.center, radius: 1.3, colors: [Color(0xFF0A2020), PhantomTheme.darkBg])
-      : const RadialGradient(center: Alignment.center, radius: 1.3, colors: [Color(0xFF200A0A), PhantomTheme.darkBg]);
-
     final titleColor = guardiansWin ? PhantomTheme.teal : PhantomTheme.red;
     final allPlayers = widget.state.players.values.toList();
     final phantoms = allPlayers.where((p) => p.isPhantom).toList();
     final guardians = allPlayers.where((p) => !p.isPhantom).toList();
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(gradient: bgGradient),
-        child: SafeArea(
-          child: FadeTransition(
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              guardiansWin
+                ? 'assets/images/ui/guardians_win.png'
+                : 'assets/images/ui/phantoms_win.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+          Positioned.fill(child: Container(color: Colors.black.withAlpha(160))),
+          SafeArea(child: FadeTransition(
             opacity: _fade,
             child: Padding(
               padding: const EdgeInsets.all(24),
@@ -147,8 +151,8 @@ class _EndScreenState extends State<EndScreen> with SingleTickerProviderStateMix
                 ],
               ),
             ),
-          ),
-        ),
+          )),
+        ],
       ),
     );
   }

@@ -85,10 +85,15 @@ class _MeetingScreenState extends State<MeetingScreen> {
     final local = state.localPlayer;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF090F1E),
-      body: SafeArea(
-        child: Column(
-          children: [
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset('assets/images/ui/meeting_overlay.png', fit: BoxFit.cover),
+          ),
+          Positioned.fill(child: Container(color: Colors.black.withAlpha(190))),
+          SafeArea(
+            child: Column(
+              children: [
             // Header
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -255,8 +260,10 @@ class _MeetingScreenState extends State<MeetingScreen> {
                 ],
               ),
             ),
-          ],
-        ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

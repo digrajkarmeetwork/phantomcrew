@@ -88,18 +88,15 @@ class _MainMenuScreenState extends State<MainMenuScreen> with SingleTickerProvid
     return Scaffold(
       body: Stack(
         children: [
-          // Background
-          Container(
-            decoration: const BoxDecoration(
-              gradient: RadialGradient(
-                center: Alignment(0, -0.3),
-                radius: 1.2,
-                colors: [Color(0xFF0D1F3C), PhantomTheme.darkBg],
-              ),
+          // AI-generated menu background
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/ui/main_menu_bg.png',
+              fit: BoxFit.cover,
             ),
           ),
-          // Starfield effect (simple dots)
-          const _Starfield(),
+          // Readability overlay
+          Positioned.fill(child: Container(color: Colors.black.withAlpha(120))),
           // Content
           SafeArea(
             child: Padding(
@@ -178,32 +175,3 @@ class _MainMenuScreenState extends State<MainMenuScreen> with SingleTickerProvid
   }
 }
 
-class _Starfield extends StatelessWidget {
-  const _Starfield();
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(painter: _StarPainter());
-  }
-}
-
-class _StarPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = Colors.white;
-    const stars = [
-      Offset(0.1, 0.05), Offset(0.3, 0.12), Offset(0.7, 0.08), Offset(0.9, 0.2),
-      Offset(0.15, 0.3), Offset(0.5, 0.25), Offset(0.8, 0.35), Offset(0.25, 0.5),
-      Offset(0.6, 0.45), Offset(0.95, 0.55), Offset(0.05, 0.65), Offset(0.4, 0.7),
-      Offset(0.75, 0.6), Offset(0.2, 0.8), Offset(0.55, 0.85), Offset(0.85, 0.75),
-      Offset(0.35, 0.9), Offset(0.65, 0.95), Offset(0.45, 0.15), Offset(0.12, 0.42),
-    ];
-    for (final s in stars) {
-      paint.color = Colors.white.withAlpha(((0.3 + (s.dx * 0.7)) * 255).toInt());
-      canvas.drawCircle(Offset(s.dx * size.width, s.dy * size.height), 1.2, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}

@@ -284,18 +284,36 @@ class _MapView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xFF080E1C),
-      child: CustomPaint(
-        painter: _StationMapPainter(
-          state: state,
-          localX: localX,
-          localY: localY,
-          localAnimation: localAnimation,
+    return LayoutBuilder(builder: (_, constraints) {
+      final w = constraints.maxWidth;
+      final h = constraints.maxHeight;
+      return Container(
+        color: const Color(0xFF080E1C),
+        child: Stack(
+          children: [
+            // Map geometry
+            CustomPaint(
+              painter: _StationMapPainter(state: state, localX: localX, localY: localY),
+              size: Size(w, h),
+            ),
+            // Other players
+            ...state.players.values
+              .where((p) => p.id != state.localPlayerId && !p.inVent)
+              .map((p) => _PlayerSprite(player: p, canvasW: w, canvasH: h)),
+            // Local player (use live position)
+            if (state.localPlayer != null)
+              _PlayerSprite(
+                player: state.localPlayer!,
+                overrideX: localX,
+                overrideY: localY,
+                canvasW: w,
+                canvasH: h,
+                isLocal: true,
+              ),
+          ],
         ),
-        size: MediaQuery.of(context).size,
-      ),
-    );
+      );
+    });
   }
 }
 
@@ -303,13 +321,11 @@ class _StationMapPainter extends CustomPainter {
   final GameState state;
   final double localX;
   final double localY;
-  final String localAnimation;
 
   _StationMapPainter({
     required this.state,
     required this.localX,
     required this.localY,
-    required this.localAnimation,
   });
 
   @override
@@ -434,60 +450,103 @@ class _StationMapPainter extends CustomPainter {
       }
     }
 
-    // Other players
-    for (final p in state.players.values) {
-      if (p.id == state.localPlayerId) continue;
-      if (p.inVent) continue;
-      _drawPlayer(canvas, size, p.x, p.y, p.color, p.name, p.isGhost);
-    }
-
-    // Local player
-    _drawPlayer(canvas, size, localX, localY,
-      state.localPlayer?.color ?? PhantomTheme.teal,
-      state.localPlayer?.name ?? '',
-      state.localPlayer?.isGhost ?? false,
-      isLocal: true,
-    );
   }
 
   void _drawRect(Canvas c, Size s, Rect r, Paint p) {
     c.drawRect(Rect.fromLTWH(r.left * s.width, r.top * s.height, r.width * s.width, r.height * s.height), p);
   }
 
-  void _drawPlayer(Canvas canvas, Size size, double x, double y, Color color, String name, bool isGhost, {bool isLocal = false}) {
-    final cx = x * size.width;
-    final cy = y * size.height;
-    final alpha = isGhost ? 120 : 255;
-    final paint = Paint()..color = color.withAlpha(alpha);
-
-    // Body (simple stand-in for sprite)
-    canvas.drawOval(Rect.fromCenter(center: Offset(cx, cy), width: 20, height: 26), paint);
-    // Visor
-    canvas.drawOval(
-      Rect.fromCenter(center: Offset(cx, cy - 6), width: 12, height: 8),
-      Paint()..color = Colors.lightBlueAccent.withAlpha(200),
-    );
-    // Local player ring
-    if (isLocal) {
-      canvas.drawCircle(Offset(cx, cy), 16, Paint()
-        ..color = Colors.white.withAlpha(60)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5,
-      );
-    }
-    // Name label
-    final tp = TextPainter(
-      text: TextSpan(
-        text: name,
-        style: TextStyle(color: Colors.white.withAlpha(alpha), fontSize: 9),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    tp.paint(canvas, Offset(cx - tp.width / 2, cy + 16));
-  }
-
   @override
   bool shouldRepaint(covariant _StationMapPainter old) => true;
+}
+
+// ── Player sprite ─────────────────────────────────────────────────────────────
+
+class _PlayerSprite extends StatelessWidget {
+  final PlayerModel player;
+  final double canvasW;
+  final double canvasH;
+  final bool isLocal;
+  final double? overrideX;
+  final double? overrideY;
+
+  const _PlayerSprite({
+    required this.player,
+    required this.canvasW,
+    required this.canvasH,
+    this.isLocal = false,
+    this.overrideX,
+    this.overrideY,
+  });
+
+  static const double _spriteW = 44.0;
+  static const double _spriteH = 56.0;
+
+  String get _assetPath => player.isGhost
+    ? 'assets/images/characters/guardian_ghost.png'
+    : 'assets/images/characters/guardian_idle_${player.colorKey}.png';
+
+  @override
+  Widget build(BuildContext context) {
+    final px = (overrideX ?? player.x) * canvasW;
+    final py = (overrideY ?? player.y) * canvasH;
+
+    return Positioned(
+      left: px - _spriteW / 2,
+      top: py - _spriteH / 2,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Local player indicator ring
+          if (isLocal)
+            Container(
+              width: _spriteW + 8,
+              height: 3,
+              margin: const EdgeInsets.only(bottom: 2),
+              decoration: BoxDecoration(
+                color: Colors.white.withAlpha(80),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          Opacity(
+            opacity: player.isGhost ? 0.55 : 1.0,
+            child: Image.asset(
+              _assetPath,
+              width: _spriteW,
+              height: _spriteH,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => _FallbackSprite(color: player.color, isGhost: player.isGhost),
+            ),
+          ),
+          Text(
+            player.name,
+            style: TextStyle(
+              color: Colors.white.withAlpha(player.isGhost ? 140 : 220),
+              fontSize: 9,
+              shadows: const [Shadow(color: Colors.black, blurRadius: 4)],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FallbackSprite extends StatelessWidget {
+  final Color color;
+  final bool isGhost;
+  const _FallbackSprite({required this.color, required this.isGhost});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 44, height: 56,
+      decoration: BoxDecoration(
+        color: color.withAlpha(isGhost ? 120 : 220),
+        borderRadius: BorderRadius.circular(8),
+      ),
+    );
+  }
 }
 
 // ── Blackout overlay ──────────────────────────────────────────────────────────

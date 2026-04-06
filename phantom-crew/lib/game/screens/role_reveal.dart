@@ -56,16 +56,6 @@ class _RoleRevealScreenState extends State<RoleRevealScreen> with SingleTickerPr
   Widget build(BuildContext context) {
     final isPhantom = widget.state.isPhantom;
 
-    final bgGradient = isPhantom
-      ? const RadialGradient(
-          center: Alignment.center, radius: 1.2,
-          colors: [Color(0xFF3D0A0A), PhantomTheme.darkBg],
-        )
-      : const RadialGradient(
-          center: Alignment.center, radius: 1.2,
-          colors: [Color(0xFF0A1A2E), PhantomTheme.darkBg],
-        );
-
     final roleColor = isPhantom ? PhantomTheme.red : PhantomTheme.teal;
     final roleTitle = isPhantom ? 'PHANTOM AGENT' : 'GUARDIAN';
     final roleDesc = isPhantom
@@ -80,9 +70,18 @@ class _RoleRevealScreenState extends State<RoleRevealScreen> with SingleTickerPr
     return GestureDetector(
       onTap: _proceed,
       child: Scaffold(
-        body: Container(
-          decoration: BoxDecoration(gradient: bgGradient),
-          child: SafeArea(
+        body: Stack(
+          children: [
+            Positioned.fill(
+              child: Image.asset(
+                isPhantom
+                  ? 'assets/images/ui/phantom_reveal.png'
+                  : 'assets/images/ui/guardian_reveal.png',
+                fit: BoxFit.cover,
+              ),
+            ),
+            Positioned.fill(child: Container(color: Colors.black.withAlpha(130))),
+            SafeArea(
             child: FadeTransition(
               opacity: _fadeIn,
               child: ScaleTransition(
@@ -160,6 +159,7 @@ class _RoleRevealScreenState extends State<RoleRevealScreen> with SingleTickerPr
               ),
             ),
           ),
+          ],
         ),
       ),
     );

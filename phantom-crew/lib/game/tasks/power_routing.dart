@@ -46,8 +46,12 @@ class _State extends State<PowerRoutingTask> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xFF08111E),
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Image.asset('assets/images/tasks/power_routing_bg.png', fit: BoxFit.cover),
+        Container(color: Colors.black.withAlpha(170)),
+        Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -100,6 +104,8 @@ class _State extends State<PowerRoutingTask> {
             Text('Connected: ${_connected.length}/4', style: const TextStyle(color: PhantomTheme.textSecondary)),
         ],
       ),
+        ),
+      ],
     );
   }
 }
