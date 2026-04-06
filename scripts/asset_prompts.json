@@ -1,0 +1,69 @@
+{
+  "_style_baseline": "sci-fi mobile game 2D sprite art, clean flat vector style, dark space station atmosphere, teal and dark blue palette with accent colours, high contrast, isolated on transparent background, game-ready asset, no text, no watermarks",
+
+  "characters": {
+    "guardian_idle_cyan":    "humanoid crew member in a sleek futuristic spacesuit, glowing cyan visor helmet, bipedal silhouette, slim proportions, tool belt and equipment harness, cyan suit body colour, front-facing idle pose, full body visible, 2D game sprite, transparent background, sci-fi mobile game art style",
+    "guardian_idle_red":     "humanoid crew member in a sleek futuristic spacesuit, glowing red visor helmet, bipedal silhouette, slim proportions, tool belt and equipment harness, red suit body colour, front-facing idle pose, full body visible, 2D game sprite, transparent background, sci-fi mobile game art style",
+    "guardian_idle_orange":  "humanoid crew member in a sleek futuristic spacesuit, glowing orange visor helmet, bipedal silhouette, slim proportions, tool belt and equipment harness, orange suit body colour, front-facing idle pose, full body visible, 2D game sprite, transparent background, sci-fi mobile game art style",
+    "guardian_idle_purple":  "humanoid crew member in a sleek futuristic spacesuit, glowing purple visor helmet, bipedal silhouette, slim proportions, tool belt and equipment harness, purple suit body colour, front-facing idle pose, full body visible, 2D game sprite, transparent background, sci-fi mobile game art style",
+    "guardian_idle_green":   "humanoid crew member in a sleek futuristic spacesuit, glowing green visor helmet, bipedal silhouette, slim proportions, tool belt and equipment harness, green suit body colour, front-facing idle pose, full body visible, 2D game sprite, transparent background, sci-fi mobile game art style",
+    "guardian_idle_pink":    "humanoid crew member in a sleek futuristic spacesuit, glowing pink visor helmet, bipedal silhouette, slim proportions, tool belt and equipment harness, pink suit body colour, front-facing idle pose, full body visible, 2D game sprite, transparent background, sci-fi mobile game art style",
+    "guardian_idle_white":   "humanoid crew member in a sleek futuristic spacesuit, glowing white visor helmet, bipedal silhouette, slim proportions, tool belt and equipment harness, white suit body colour, front-facing idle pose, full body visible, 2D game sprite, transparent background, sci-fi mobile game art style",
+    "guardian_idle_yellow":  "humanoid crew member in a sleek futuristic spacesuit, glowing yellow visor helmet, bipedal silhouette, slim proportions, tool belt and equipment harness, yellow suit body colour, front-facing idle pose, full body visible, 2D game sprite, transparent background, sci-fi mobile game art style",
+    "guardian_ghost":        "translucent blue holographic ghost silhouette of a space crew member, ethereal energy glow, fading at edges, floating upright, sci-fi game sprite, transparent background",
+    "phantom_vent_enter":    "humanoid figure in spacesuit glitching and flickering with dark energy, body partially phasing through metal floor grate, dark purple and black distortion effect, sci-fi game sprite, transparent background",
+    "phantom_kill_flash":    "dark radial energy pulse burst effect, black and purple lightning tendrils expanding outward, sci-fi kill effect, transparent background, no characters"
+  },
+
+  "map": {
+    "station_map_overview":  "top-down view of a sci-fi space station interior map, multiple interconnected rooms and corridors, dark metal flooring with teal ambient lighting, command bridge front-centre, engineering bay lower-left, research lab centre, life support upper-right, comms array top, maintenance tunnels connecting rooms, game map style, 2048x2048, no text labels",
+    "floor_tile_metal":      "top-down view dark metal grating floor tile, 128x128px, teal ambient light reflection, sci-fi space station, seamless tileable, game asset",
+    "floor_tile_console":    "top-down view sci-fi floor tile with embedded glowing teal console panels, 128x128px, space station aesthetic, game asset",
+    "wall_tile":             "top-down view dark metal wall segment tile, 128x128px, space station, sci-fi, seamless, game asset",
+    "vent_grate_closed":     "top-down view metal vent grate on floor, closed state, sci-fi space station, dark metal with subtle teal glow around edges, 128x128px, game asset, transparent background",
+    "vent_grate_open":       "top-down view metal vent grate on floor, open state with dark tunnel visible below, sci-fi space station, teal glow from inside, 128x128px, game asset, transparent background",
+    "task_station_icon":     "glowing teal holographic console station, top-down view, circular indicator light, sci-fi space station equipment, 128x128px, game asset, transparent background"
+  },
+
+  "ui": {
+    "main_menu_bg":          "epic sci-fi space panorama, space station silhouette against starfield and nebula, dark atmosphere, teal and purple glowing accents, cinematic quality, 1080x1920 portrait orientation, mobile game background, no text",
+    "hud_panel_bottom":      "sci-fi HUD bottom panel for mobile game, dark semi-transparent glass panel, teal neon border accents, rounded top corners, flat bottom, contains circular button slots, 1080x200px, game interface element",
+    "kill_button":           "red circular action button icon, skull or blade symbol in centre, glowing red neon edge, dark background, sci-fi mobile game UI, 128x128px, transparent background",
+    "report_button":         "orange circular action button icon, exclamation mark or body outline symbol, glowing orange neon edge, dark background, sci-fi mobile game UI, 128x128px, transparent background",
+    "vent_button":           "purple circular action button icon, downward arrow or phase-shift warp symbol, glowing purple neon edge, dark background, sci-fi mobile game UI, 128x128px, transparent background",
+    "sabotage_button":       "red circular action button icon, lightning bolt and warning symbol, glowing dark red edge, sci-fi mobile game UI, 128x128px, transparent background",
+    "meeting_button":        "yellow circular action button icon, megaphone or assembly symbol, glowing yellow neon edge, sci-fi mobile game UI, 128x128px, transparent background",
+    "task_button":           "teal circular action button icon, wrench and gear symbol, glowing teal edge, sci-fi mobile game UI, 128x128px, transparent background",
+    "vote_card":             "sci-fi voting card UI element, player name slot at top, cast vote button, skip vote button, dark glass panel with teal accents, mobile game UI, 400x600px",
+    "meeting_overlay":       "sci-fi emergency assembly room background overlay, dark circular meeting chamber, holographic player portraits around the edge, teal lighting, dramatic atmosphere, 1080x1920px, semi-transparent edges"
+  },
+
+  "tasks": {
+    "navigation_calibration_bg": "sci-fi navigation console interface, star map on dark circular display, rotating dial controls, teal holographic display, space station command bridge aesthetic, mobile game task background, 1080x1920px",
+    "reactor_alignment_bg":      "sci-fi reactor control panel, energy frequency oscilloscope display, slider controls, red and teal warning colours, engineering bay aesthetic, mobile game task background, 1080x1920px",
+    "power_routing_bg":          "sci-fi power routing panel, coloured electrical conduit nodes on dark panel, wire connection puzzle aesthetic, teal and orange colour palette, mobile game task background, 1080x1920px",
+    "signal_boost_bg":           "sci-fi communications console, radio frequency dial and waveform display, antenna array schematic, blue and teal colours, comms array aesthetic, mobile game task background, 1080x1920px",
+    "id_verification_bg":        "sci-fi identity scanner interface, holographic ID card reader, biometric scanner lines, teal glow, command bridge aesthetic, mobile game task background, 1080x1920px"
+  },
+
+  "role_reveal": {
+    "guardian_reveal":       "heroic sci-fi crew member reveal screen, glowing teal and blue colour palette, GUARDIAN text area at top, dramatic lighting, space station background, hope and determination mood, 1080x1920px portrait, mobile game full-screen",
+    "phantom_reveal":        "ominous sci-fi phantom agent reveal screen, dark red and purple colour palette, PHANTOM AGENT text area at top, sinister shadowy figures, dark energy effects, space corruption aesthetic, 1080x1920px portrait, mobile game full-screen"
+  },
+
+  "end_screens": {
+    "guardians_win":         "triumphant sci-fi victory screen, space crew celebrating, GUARDIANS WIN text area, teal and gold colours, bright hopeful atmosphere, confetti-like quantum particle effects, 1080x1920px portrait, mobile game full-screen",
+    "phantoms_win":          "ominous sci-fi defeat screen, dark energy consuming space station, THE RIFT OPENS text area, deep red and black colours, alien tendrils reaching out, dramatic loss atmosphere, 1080x1920px portrait, mobile game full-screen"
+  },
+
+  "cosmetics": {
+    "visor_standard":        "sleek flat visor lens for spacesuit helmet, oval shape, solid colour, subtle reflection, 64x64px game icon, transparent background",
+    "visor_cracked":         "cracked battle-damaged visor lens for spacesuit helmet, cracks across surface, glowing leak effect, 64x64px game icon, transparent background",
+    "visor_holographic":     "holographic shimmer visor lens for spacesuit helmet, iridescent rainbow sheen, 64x64px game icon, transparent background",
+    "visor_thermal":         "thermal imaging visor lens, orange heat-map gradient display, 64x64px game icon, transparent background",
+    "emblem_cmc":            "CMC Celestial Mining Collective corporate emblem badge, sci-fi faction logo, circular design, 64x64px game icon, transparent background",
+    "emblem_star":           "five-pointed star rank emblem, gold metallic finish, sci-fi military style, 64x64px game icon, transparent background",
+    "emblem_circuit":        "circuit board pattern emblem badge, tech faction, teal on dark, 64x64px game icon, transparent background",
+    "emblem_rift":           "swirling quantum rift symbol emblem, purple energy vortex, mysterious, 64x64px game icon, transparent background"
+  }
+}
