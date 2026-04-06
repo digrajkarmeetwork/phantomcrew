@@ -113,3 +113,10 @@ Thumbs.db
 /ios/xcode/native/
 /ios/IOSLauncher.app
 /ios/IOSLauncher.app.dSYM
+
+## Node / relay-server
+relay-server/node_modules/
+
+## Environment secrets
+*.env
+phantom-crew/.env
