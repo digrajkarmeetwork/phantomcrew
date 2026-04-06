@@ -1,0 +1,280 @@
+{
+  "style_reference": "sci-fi mobile game sprite, clean vector art, dark space station aesthetic, teal and dark blue colour palette, high contrast, transparent background",
+  "categories": {
+    "characters": {
+      "guardian_idle": {
+        "prompt": "humanoid space crew member, sleek futuristic spacesuit with glowing {color} visor, bipedal silhouette, tool belt, {color} suit colour, clean line art, game sprite, transparent background, front-facing, idle pose, 64x64 pixel art",
+        "variants": ["cyan", "red", "orange", "purple", "green", "pink", "white", "yellow"],
+        "output_dir": "assets/images/characters",
+        "filename_pattern": "guardian_idle_{variant}.png",
+        "size": "64x64"
+      },
+      "guardian_walk": {
+        "prompt": "humanoid space crew member walking, sleek futuristic spacesuit with glowing {color} visor, bipedal silhouette, tool belt, {color} suit colour, clean line art, game sprite sheet 4 frames, transparent background, side view, walking animation",
+        "variants": ["cyan", "red", "orange", "purple", "green", "pink", "white", "yellow"],
+        "output_dir": "assets/images/characters",
+        "filename_pattern": "guardian_walk_{variant}.png",
+        "size": "256x64",
+        "note": "4-frame sprite sheet"
+      },
+      "guardian_death": {
+        "prompt": "space crew member death animation, futuristic spacesuit crumpling, dark energy dissolving, 6-frame sprite sheet, game sprite, transparent background, pixel art",
+        "variants": ["default"],
+        "output_dir": "assets/images/characters",
+        "filename_pattern": "guardian_death.png",
+        "size": "384x64",
+        "note": "6-frame sprite sheet"
+      },
+      "guardian_ghost": {
+        "prompt": "translucent blue holographic ghost of space crew member, ethereal glow, energy afterimage, game sprite, transparent background, 64x64 pixel art",
+        "variants": ["default"],
+        "output_dir": "assets/images/characters",
+        "filename_pattern": "guardian_ghost.png",
+        "size": "64x64"
+      },
+      "phantom_vent_enter": {
+        "prompt": "humanoid figure glitching and phasing through a vent grate, digital distortion effect, purple energy particles, 4-frame sprite sheet, game sprite, transparent background",
+        "variants": ["default"],
+        "output_dir": "assets/images/characters",
+        "filename_pattern": "phantom_vent_enter.png",
+        "size": "256x64",
+        "note": "4-frame sprite sheet"
+      },
+      "phantom_kill": {
+        "prompt": "dark energy pulse radiating from a figure, alien tentacles briefly visible, kill attack animation, 4-frame sprite sheet, game sprite, transparent background, dark red and purple",
+        "variants": ["default"],
+        "output_dir": "assets/images/characters",
+        "filename_pattern": "phantom_kill_flash.png",
+        "size": "256x64",
+        "note": "4-frame sprite sheet"
+      }
+    },
+    "map": {
+      "station_overview": {
+        "prompt": "top-down view of a sci-fi space station interior, dark metallic floors, teal accent lighting, 5 interconnected rooms with corridors, command bridge, engineering bay, research lab, life support, comms array, game map, clean vector style",
+        "variants": ["default"],
+        "output_dir": "assets/images/map",
+        "filename_pattern": "station_map_overview.png",
+        "size": "2048x2048"
+      },
+      "floor_tile_metal": {
+        "prompt": "dark metallic floor tile, sci-fi space station, subtle grid pattern, teal edge glow, top-down view, seamless tileable, game asset",
+        "variants": ["default"],
+        "output_dir": "assets/images/map",
+        "filename_pattern": "floor_tile_metal.png",
+        "size": "128x128"
+      },
+      "floor_tile_console": {
+        "prompt": "dark metallic floor tile with embedded console lights, sci-fi space station, holographic display glow, top-down view, seamless tileable, game asset",
+        "variants": ["default"],
+        "output_dir": "assets/images/map",
+        "filename_pattern": "floor_tile_console.png",
+        "size": "128x128"
+      },
+      "wall_tile": {
+        "prompt": "sci-fi space station wall tile, dark metal with teal accent strip, industrial paneling, top-down view, seamless tileable, game asset",
+        "variants": ["default"],
+        "output_dir": "assets/images/map",
+        "filename_pattern": "wall_tile.png",
+        "size": "128x128"
+      },
+      "vent_grate_closed": {
+        "prompt": "closed maintenance vent grate, dark metal grid, purple ambient glow, sci-fi space station, top-down view, game asset, transparent background",
+        "variants": ["default"],
+        "output_dir": "assets/images/map",
+        "filename_pattern": "vent_grate_closed.png",
+        "size": "64x64"
+      },
+      "vent_grate_open": {
+        "prompt": "open maintenance vent grate, dark hole with purple energy wisps, sci-fi space station, top-down view, game asset, transparent background",
+        "variants": ["default"],
+        "output_dir": "assets/images/map",
+        "filename_pattern": "vent_grate_open.png",
+        "size": "64x64"
+      },
+      "task_station_icon": {
+        "prompt": "glowing holographic console station icon, teal energy, sci-fi interface, top-down view, game asset, transparent background",
+        "variants": ["default"],
+        "output_dir": "assets/images/map",
+        "filename_pattern": "task_station_icon.png",
+        "size": "64x64"
+      }
+    },
+    "ui": {
+      "main_menu_bg": {
+        "prompt": "deep space panorama with distant nebula and stars, dark blue and teal, a massive space station silhouette in the foreground, cinematic, mobile game menu background, portrait orientation 1080x1920",
+        "variants": ["default"],
+        "output_dir": "assets/images/ui",
+        "filename_pattern": "main_menu_bg.png",
+        "size": "1080x1920"
+      },
+      "hud_panel": {
+        "prompt": "semi-transparent dark sci-fi HUD panel, metallic border, teal accent lines, game UI element, transparent background",
+        "variants": ["default"],
+        "output_dir": "assets/images/ui",
+        "filename_pattern": "hud_panel_bottom.png",
+        "size": "1080x200"
+      },
+      "kill_button": {
+        "prompt": "circular red button icon with crosshair symbol, sci-fi style, dark background, game UI, transparent background",
+        "variants": ["default"],
+        "output_dir": "assets/images/ui",
+        "filename_pattern": "kill_button.png",
+        "size": "128x128"
+      },
+      "report_button": {
+        "prompt": "circular orange button icon with warning triangle symbol, sci-fi style, game UI, transparent background",
+        "variants": ["default"],
+        "output_dir": "assets/images/ui",
+        "filename_pattern": "report_button.png",
+        "size": "128x128"
+      },
+      "vent_button": {
+        "prompt": "circular purple button icon with phase-shift portal symbol, sci-fi style, game UI, transparent background",
+        "variants": ["default"],
+        "output_dir": "assets/images/ui",
+        "filename_pattern": "vent_button.png",
+        "size": "128x128"
+      },
+      "sabotage_button": {
+        "prompt": "circular orange button icon with lightning bolt symbol, sci-fi style, game UI, transparent background",
+        "variants": ["default"],
+        "output_dir": "assets/images/ui",
+        "filename_pattern": "sabotage_button.png",
+        "size": "128x128"
+      },
+      "meeting_button": {
+        "prompt": "circular amber button icon with megaphone/alarm symbol, sci-fi style, game UI, transparent background",
+        "variants": ["default"],
+        "output_dir": "assets/images/ui",
+        "filename_pattern": "meeting_button.png",
+        "size": "128x128"
+      },
+      "task_button": {
+        "prompt": "circular teal button icon with wrench/tool symbol, sci-fi style, game UI, transparent background",
+        "variants": ["default"],
+        "output_dir": "assets/images/ui",
+        "filename_pattern": "task_button.png",
+        "size": "128x128"
+      },
+      "vote_card": {
+        "prompt": "dark sci-fi voting card UI panel, metallic border, player avatar placeholder, vote button, transparent background",
+        "variants": ["default"],
+        "output_dir": "assets/images/ui",
+        "filename_pattern": "vote_card.png",
+        "size": "300x100"
+      },
+      "meeting_overlay": {
+        "prompt": "dark sci-fi meeting room interior overlay, holographic table in center, dark teal ambient lighting, game UI background",
+        "variants": ["default"],
+        "output_dir": "assets/images/ui",
+        "filename_pattern": "meeting_overlay.png",
+        "size": "1080x1920"
+      },
+      "guardian_reveal": {
+        "prompt": "heroic guardian reveal screen, blue and teal tones, silhouette of space crew member in bright light, text area at bottom, sci-fi, mobile game, portrait 1080x1920",
+        "variants": ["default"],
+        "output_dir": "assets/images/ui",
+        "filename_pattern": "guardian_reveal.png",
+        "size": "1080x1920"
+      },
+      "phantom_reveal": {
+        "prompt": "ominous phantom agent reveal screen, dark red and purple tones, sinister silhouette with glowing eyes, alien energy, text area at bottom, sci-fi, mobile game, portrait 1080x1920",
+        "variants": ["default"],
+        "output_dir": "assets/images/ui",
+        "filename_pattern": "phantom_reveal.png",
+        "size": "1080x1920"
+      },
+      "guardians_win": {
+        "prompt": "victory celebration screen, crew members in space station, teal and blue triumphant lighting, space visible through windows, sci-fi, mobile game, portrait 1080x1920",
+        "variants": ["default"],
+        "output_dir": "assets/images/ui",
+        "filename_pattern": "guardians_win.png",
+        "size": "1080x1920"
+      },
+      "phantoms_win": {
+        "prompt": "dark victory screen, alien phantom entity consuming a space station, red and purple ominous lighting, the Rift glowing, sci-fi horror, mobile game, portrait 1080x1920",
+        "variants": ["default"],
+        "output_dir": "assets/images/ui",
+        "filename_pattern": "phantoms_win.png",
+        "size": "1080x1920"
+      }
+    },
+    "tasks": {
+      "navigation_calibration_bg": {
+        "prompt": "sci-fi navigation console with holographic star map, dark control room, teal interface glow, space visible through viewport, game task background",
+        "variants": ["default"],
+        "output_dir": "assets/images/tasks",
+        "filename_pattern": "navigation_calibration_bg.png",
+        "size": "1080x1920"
+      },
+      "id_verification_bg": {
+        "prompt": "sci-fi ID scanner console, holographic badge reader, biometric verification display, teal interface, dark room, game task background",
+        "variants": ["default"],
+        "output_dir": "assets/images/tasks",
+        "filename_pattern": "id_verification_bg.png",
+        "size": "1080x1920"
+      },
+      "reactor_alignment_bg": {
+        "prompt": "sci-fi reactor alignment console, energy frequency display with sliders, blue and orange plasma, engineering room, game task background",
+        "variants": ["default"],
+        "output_dir": "assets/images/tasks",
+        "filename_pattern": "reactor_alignment_bg.png",
+        "size": "1080x1920"
+      },
+      "power_routing_bg": {
+        "prompt": "sci-fi power routing panel with coloured conduits and wire connections, engineering station, orange and teal wires, dark metal background, game task background",
+        "variants": ["default"],
+        "output_dir": "assets/images/tasks",
+        "filename_pattern": "power_routing_bg.png",
+        "size": "1080x1920"
+      },
+      "signal_boost_bg": {
+        "prompt": "sci-fi communications console with frequency dials, signal waveform display, satellite dish controls, dark comms room, game task background",
+        "variants": ["default"],
+        "output_dir": "assets/images/tasks",
+        "filename_pattern": "signal_boost_bg.png",
+        "size": "1080x1920"
+      }
+    },
+    "cosmetics": {
+      "visors": {
+        "prompt": "sci-fi helmet visor icon, {style} style, small game icon, transparent background, clean vector art",
+        "variants": ["standard", "cracked", "holographic", "thermal", "crystal", "neon", "tactical", "prismatic"],
+        "output_dir": "assets/images/cosmetics",
+        "filename_pattern": "visor_{variant}.png",
+        "size": "64x64"
+      },
+      "emblems": {
+        "prompt": "sci-fi chest emblem badge icon, {style} design, small game icon, transparent background, clean vector art, metallic",
+        "variants": ["cmc", "rift", "star", "circuit", "phoenix", "quantum", "shield", "nebula"],
+        "output_dir": "assets/images/cosmetics",
+        "filename_pattern": "emblem_{variant}.png",
+        "size": "64x64"
+      }
+    },
+    "fx": {
+      "kill_pulse": {
+        "prompt": "dark energy pulse expanding outward, red and purple, alien attack effect, transparent background, game VFX sprite sheet 4 frames",
+        "variants": ["default"],
+        "output_dir": "assets/images/fx",
+        "filename_pattern": "kill_pulse.png",
+        "size": "256x64"
+      },
+      "vent_glitch": {
+        "prompt": "digital glitch distortion effect, purple scan lines and static, transparent background, game VFX sprite sheet 4 frames",
+        "variants": ["default"],
+        "output_dir": "assets/images/fx",
+        "filename_pattern": "vent_glitch.png",
+        "size": "256x64"
+      },
+      "sabotage_warning": {
+        "prompt": "red pulsing warning indicator, alarm glow, sci-fi alert icon, transparent background, game VFX",
+        "variants": ["default"],
+        "output_dir": "assets/images/fx",
+        "filename_pattern": "sabotage_warning.png",
+        "size": "64x64"
+      }
+    }
+  }
+}

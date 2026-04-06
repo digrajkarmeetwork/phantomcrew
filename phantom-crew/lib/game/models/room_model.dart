@@ -15,6 +15,13 @@ class RoomModel {
   Map<String, int> voteResults; // playerId -> vote count ('' = skip)
   double totalTaskProgress; // 0.0 to 1.0
 
+  /// Tracks which players are actively holding fix panels.
+  /// Key: panel ID (e.g. 'reactor_panel_a'), Value: player ID.
+  Map<String, String> fixingPanels;
+
+  /// For airlock breach: which room is sealed off.
+  String? sealedZone;
+
   RoomModel({
     required this.name,
     required this.hostId,
@@ -27,7 +34,10 @@ class RoomModel {
     this.winCondition = WinCondition.none,
     Map<String, int>? voteResults,
     this.totalTaskProgress = 0.0,
-  }) : voteResults = voteResults ?? {};
+    Map<String, String>? fixingPanels,
+    this.sealedZone,
+  }) : voteResults = voteResults ?? {},
+       fixingPanels = fixingPanels ?? {};
 
   bool get hasSabotage => activeSabotage != SabotageType.none;
 
@@ -50,6 +60,8 @@ class RoomModel {
     'winCondition': winCondition.name,
     'voteResults': voteResults,
     'totalTaskProgress': totalTaskProgress,
+    'fixingPanels': fixingPanels,
+    'sealedZone': sealedZone,
   };
 
   factory RoomModel.fromJson(Map<String, dynamic> json) => RoomModel(
@@ -64,5 +76,7 @@ class RoomModel {
     winCondition: WinCondition.values.firstWhere((w) => w.name == json['winCondition'], orElse: () => WinCondition.none),
     voteResults: (json['voteResults'] as Map<String, dynamic>?)?.map((k, v) => MapEntry(k, v as int)) ?? {},
     totalTaskProgress: (json['totalTaskProgress'] as num?)?.toDouble() ?? 0.0,
+    fixingPanels: (json['fixingPanels'] as Map<String, dynamic>?)?.map((k, v) => MapEntry(k, v as String)) ?? {},
+    sealedZone: json['sealedZone'] as String?,
   );
 }

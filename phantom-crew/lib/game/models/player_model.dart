@@ -24,6 +24,15 @@ class PlayerModel {
   bool hasVoted;
   String? votedFor; // player id or 'skip'
 
+  // Cooldowns
+  DateTime? lastKillTime;
+  DateTime? lastVentTime;
+  DateTime? lastSabotageTime;
+
+  static const int killCooldownSeconds = 30;
+  static const int ventCooldownSeconds = 15;
+  static const int sabotageCooldownSeconds = 30;
+
   PlayerModel({
     required this.id,
     required this.name,
@@ -43,6 +52,9 @@ class PlayerModel {
     this.meetingUsesLeft = 1,
     this.hasVoted = false,
     this.votedFor,
+    this.lastKillTime,
+    this.lastVentTime,
+    this.lastSabotageTime,
   })  : assignedTasks = assignedTasks ?? [],
         completedTasks = completedTasks ?? {};
 
@@ -52,10 +64,28 @@ class PlayerModel {
   bool get isAlive => state == PlayerState.alive;
   bool get isGhost => state == PlayerState.ghost;
 
+  bool get canKill => _cooldownRemaining(lastKillTime, killCooldownSeconds) == 0;
+  bool get canVent => _cooldownRemaining(lastVentTime, ventCooldownSeconds) == 0;
+  bool get canSabotage => _cooldownRemaining(lastSabotageTime, sabotageCooldownSeconds) == 0;
+
+  int get killCooldownRemaining => _cooldownRemaining(lastKillTime, killCooldownSeconds);
+  int get ventCooldownRemaining => _cooldownRemaining(lastVentTime, ventCooldownSeconds);
+  int get sabotageCooldownRemaining => _cooldownRemaining(lastSabotageTime, sabotageCooldownSeconds);
+
+  int _cooldownRemaining(DateTime? lastTime, int cooldownSeconds) {
+    if (lastTime == null) return 0;
+    final elapsed = DateTime.now().difference(lastTime).inSeconds;
+    final remaining = cooldownSeconds - elapsed;
+    return remaining > 0 ? remaining : 0;
+  }
+
   double get taskProgress {
     if (assignedTasks.isEmpty) return 0;
     return completedTasks.length / assignedTasks.length;
   }
+
+  // Sentinel used by copyWith to distinguish "not provided" from explicit null.
+  static const _absent = Object();
 
   PlayerModel copyWith({
     String? name,
@@ -74,7 +104,10 @@ class PlayerModel {
     Set<String>? completedTasks,
     int? meetingUsesLeft,
     bool? hasVoted,
-    String? votedFor,
+    Object? votedFor = _absent, // supports explicit null to clear
+    DateTime? lastKillTime,
+    DateTime? lastVentTime,
+    DateTime? lastSabotageTime,
   }) {
     return PlayerModel(
       id: id,
@@ -94,7 +127,10 @@ class PlayerModel {
       completedTasks: completedTasks ?? this.completedTasks,
       meetingUsesLeft: meetingUsesLeft ?? this.meetingUsesLeft,
       hasVoted: hasVoted ?? this.hasVoted,
-      votedFor: votedFor ?? this.votedFor,
+      votedFor: votedFor == _absent ? this.votedFor : votedFor as String?,
+      lastKillTime: lastKillTime ?? this.lastKillTime,
+      lastVentTime: lastVentTime ?? this.lastVentTime,
+      lastSabotageTime: lastSabotageTime ?? this.lastSabotageTime,
     );
   }
 
@@ -116,6 +152,9 @@ class PlayerModel {
     'meetingUsesLeft': meetingUsesLeft,
     'hasVoted': hasVoted,
     'votedFor': votedFor,
+    'lastKillTime': lastKillTime?.toIso8601String(),
+    'lastVentTime': lastVentTime?.toIso8601String(),
+    'lastSabotageTime': lastSabotageTime?.toIso8601String(),
   };
 
   factory PlayerModel.fromJson(Map<String, dynamic> json) {
@@ -137,6 +176,9 @@ class PlayerModel {
       meetingUsesLeft: json['meetingUsesLeft'] as int? ?? 1,
       hasVoted: json['hasVoted'] as bool? ?? false,
       votedFor: json['votedFor'] as String?,
+      lastKillTime: json['lastKillTime'] != null ? DateTime.parse(json['lastKillTime'] as String) : null,
+      lastVentTime: json['lastVentTime'] != null ? DateTime.parse(json['lastVentTime'] as String) : null,
+      lastSabotageTime: json['lastSabotageTime'] != null ? DateTime.parse(json['lastSabotageTime'] as String) : null,
     );
   }
 }

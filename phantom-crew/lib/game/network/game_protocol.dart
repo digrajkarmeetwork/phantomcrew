@@ -121,12 +121,18 @@ class PhantomMessage {
       data: {'victim': victimId},
     );
 
-  factory PhantomMessage.vent(String room, String playerId, String action, String ventId) =>
+  factory PhantomMessage.vent(String room, String playerId, String action, String ventId, {String? destinationVentId, double? destX, double? destY}) =>
     PhantomMessage(
       type: MsgType.ventAction,
       room: room,
       sender: playerId,
-      data: {'action': action, 'ventId': ventId},
+      data: {
+        'action': action,
+        'ventId': ventId,
+        if (destinationVentId != null) 'destinationVentId': destinationVentId,
+        if (destX != null) 'destX': destX,
+        if (destY != null) 'destY': destY,
+      },
     );
 
   factory PhantomMessage.sabotage(String room, String phantomId, String sabotageType) =>

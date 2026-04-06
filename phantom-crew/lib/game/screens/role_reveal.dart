@@ -55,7 +55,6 @@ class _RoleRevealScreenState extends State<RoleRevealScreen> with SingleTickerPr
   @override
   Widget build(BuildContext context) {
     final isPhantom = widget.state.isPhantom;
-    final player = widget.state.localPlayer;
 
     final bgGradient = isPhantom
       ? const RadialGradient(

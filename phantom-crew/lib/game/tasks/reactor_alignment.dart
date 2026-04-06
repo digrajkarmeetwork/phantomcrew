@@ -101,7 +101,7 @@ class _OscPainter extends CustomPainter {
         final y = size.height / 2 + (size.height * 0.3) * (1 - values[i]) *
           (i == 0 ? 1 : (i == 1 ? -1 : 0.5)) *
           _sin(t * freq * 2 * 3.14159);
-        if (x == 0) path.moveTo(x.toDouble(), y); else path.lineTo(x.toDouble(), y);
+        if (x == 0) { path.moveTo(x.toDouble(), y); } else { path.lineTo(x.toDouble(), y); }
       }
       canvas.drawPath(path, paint..style = PaintingStyle.stroke);
 

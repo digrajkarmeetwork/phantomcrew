@@ -2,6 +2,7 @@ import 'dart:math';
 import '../models/game_state.dart';
 import '../models/player_model.dart';
 import '../models/room_model.dart';
+import '../models/station_map.dart';
 import 'game_protocol.dart';
 import 'relay_client.dart';
 
@@ -163,6 +164,11 @@ class RoomManager {
   void sendKill(String victimId, double x, double y) {
     final room = state.room;
     if (room == null) return;
+    final local = state.localPlayer;
+    if (local == null || !local.canKill) return;
+    // Set cooldown timestamp
+    state.players[local.id] = local.copyWith(lastKillTime: DateTime.now());
+    state.notify();
     relay.send(PhantomMessage.kill(room.name, state.localPlayerId, victimId, x, y));
   }
 
@@ -172,16 +178,53 @@ class RoomManager {
     relay.send(PhantomMessage.reportBody(room.name, state.localPlayerId, victimId));
   }
 
-  void sendVent(String action, String ventId) {
+  void sendVent(String action, String ventId, {String? destinationVentId, double? destX, double? destY}) {
     final room = state.room;
     if (room == null) return;
-    relay.send(PhantomMessage.vent(room.name, state.localPlayerId, action, ventId));
+    // Set vent cooldown on enter
+    if (action == 'enter') {
+      final local = state.localPlayer;
+      if (local != null) {
+        state.players[local.id] = local.copyWith(lastVentTime: DateTime.now());
+        state.notify();
+      }
+    }
+    relay.send(PhantomMessage.vent(
+      room.name, state.localPlayerId, action, ventId,
+      destinationVentId: destinationVentId,
+      destX: destX,
+      destY: destY,
+    ));
   }
 
   void sendSabotage(String sabotageType) {
     final room = state.room;
     if (room == null) return;
-    relay.send(PhantomMessage.sabotage(room.name, state.localPlayerId, sabotageType));
+    final local = state.localPlayer;
+    if (local == null || !local.canSabotage) return;
+    state.players[local.id] = local.copyWith(lastSabotageTime: DateTime.now());
+    state.notify();
+
+    // For airlock breach, pick a random zone to seal
+    String? sealedZone;
+    if (sabotageType == 'airlockBreach') {
+      final zones = StationMap.rooms.keys.toList();
+      zones.shuffle();
+      sealedZone = zones.first;
+    }
+
+    final msg = PhantomMessage.sabotage(room.name, state.localPlayerId, sabotageType);
+    // Add sealedZone to the message data if applicable
+    if (sealedZone != null) {
+      relay.send(PhantomMessage(
+        type: msg.type,
+        room: msg.room,
+        sender: msg.sender,
+        data: {...msg.data, 'sealedZone': sealedZone},
+      ));
+    } else {
+      relay.send(msg);
+    }
   }
 
   void sendFixSabotage(String sabotageType, String panel) {
@@ -290,7 +333,6 @@ class RoomManager {
       (r) => r.name == msg.data['role'],
       orElse: () => PlayerRole.guardian,
     );
-    final colorKey = msg.data['colorKey'] as String? ?? 'cyan';
     final tasks = (msg.data['assignedTasks'] as List<dynamic>?)?.cast<String>() ?? [];
 
     // Update all players from the full roster
@@ -353,7 +395,18 @@ class RoomManager {
     final action = msg.data['action'] as String? ?? '';
     final p = state.players[id];
     if (p == null) return;
-    state.players[id] = p.copyWith(inVent: action == 'enter');
+
+    if (action == 'enter') {
+      state.players[id] = p.copyWith(inVent: true);
+    } else if (action == 'travel') {
+      final destX = (msg.data['destX'] as num?)?.toDouble();
+      final destY = (msg.data['destY'] as num?)?.toDouble();
+      if (destX != null && destY != null) {
+        state.players[id] = p.copyWith(x: destX, y: destY, inVent: true);
+      }
+    } else if (action == 'exit') {
+      state.players[id] = p.copyWith(inVent: false);
+    }
     state.notify();
   }
 
@@ -362,13 +415,62 @@ class RoomManager {
       (s) => s.name == msg.data['sabotageType'],
       orElse: () => SabotageType.none,
     );
-    state.setSabotage(type);
+    final sealedZone = msg.data['sealedZone'] as String?;
+    state.setSabotage(type, sealedZone: sealedZone);
   }
 
   void _onFixSabotage(PhantomMessage msg) {
-    // Host tracks fix panels; simplified: first fix clears sabotage
-    if (state.isHost) {
-      state.clearSabotage();
+    final room = state.room;
+    if (room == null) return;
+
+    final panel = msg.data['panel'] as String? ?? '';
+    final playerId = msg.sender ?? '';
+    final action = msg.data['action'] as String? ?? 'hold';
+    final sabotageType = room.activeSabotage.name;
+
+    if (action == 'cancel') {
+      // Player released the fix panel
+      room.fixingPanels.remove(panel);
+      state.notify();
+      return;
+    }
+
+    // Register player on fix panel
+    room.fixingPanels[panel] = playerId;
+    state.notify();
+
+    // Host checks if fix conditions are met
+    if (!state.isHost) return;
+
+    final required = StationMap.fixRequirements[sabotageType] ?? 1;
+    final panels = StationMap.fixPanels[sabotageType] ?? {};
+
+    if (required == 1) {
+      // Single player at correct panel clears sabotage
+      if (panels.containsKey(panel)) {
+        state.clearSabotage();
+        room.fixingPanels.clear();
+        relay.send(PhantomMessage(
+          type: MsgType.fixSabotage,
+          room: room.name,
+          sender: state.localPlayerId,
+          data: {'action': 'cleared', 'sabotageType': sabotageType},
+        ));
+      }
+    } else {
+      // Multi-player: check if all panels have different players holding them
+      final activePanels = panels.keys.where((p) => room.fixingPanels.containsKey(p)).toList();
+      final uniquePlayers = activePanels.map((p) => room.fixingPanels[p]).toSet();
+      if (activePanels.length >= required && uniquePlayers.length >= required) {
+        state.clearSabotage();
+        room.fixingPanels.clear();
+        relay.send(PhantomMessage(
+          type: MsgType.fixSabotage,
+          room: room.name,
+          sender: state.localPlayerId,
+          data: {'action': 'cleared', 'sabotageType': sabotageType},
+        ));
+      }
     }
   }
 

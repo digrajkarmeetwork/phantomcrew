@@ -45,7 +45,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = PhantomTheme.playerColors;
+    const colors = PhantomTheme.playerColors;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,

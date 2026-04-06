@@ -114,8 +114,8 @@ class _MainMenuScreenState extends State<MainMenuScreen> with SingleTickerProvid
                       scale: _pulseAnim.value,
                       child: Column(
                         children: [
-                          GlowText('PHANTOM', fontSize: 42),
-                          GlowText('CREW', fontSize: 42, color: PhantomTheme.purple),
+                          const GlowText('PHANTOM', fontSize: 42),
+                          const GlowText('CREW', fontSize: 42, color: PhantomTheme.purple),
                           const SizedBox(height: 8),
                           Text(
                             'Trust no one. The phantom is already among you.',
@@ -191,7 +191,7 @@ class _StarPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..color = Colors.white;
-    final stars = [
+    const stars = [
       Offset(0.1, 0.05), Offset(0.3, 0.12), Offset(0.7, 0.08), Offset(0.9, 0.2),
       Offset(0.15, 0.3), Offset(0.5, 0.25), Offset(0.8, 0.35), Offset(0.25, 0.5),
       Offset(0.6, 0.45), Offset(0.95, 0.55), Offset(0.05, 0.65), Offset(0.4, 0.7),

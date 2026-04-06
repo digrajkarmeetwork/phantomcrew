@@ -29,10 +29,13 @@ class _State extends State<SatelliteAlignTask> {
     } else {
       setState(() => _error = true);
       Future.delayed(const Duration(milliseconds: 600), () {
-        if (mounted) setState(() {
-          _error = false; _step = 0;
-          for (int i = 0; i < 6; i++) _tapped[i] = false;
-        });
+        if (mounted) {
+          setState(() {
+            _error = false;
+            _step = 0;
+            for (int i = 0; i < 6; i++) { _tapped[i] = false; }
+          });
+        }
       });
     }
   }

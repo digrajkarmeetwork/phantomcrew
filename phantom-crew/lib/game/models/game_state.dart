@@ -49,7 +49,7 @@ class GameState extends ChangeNotifier {
   Duration get meetingTimeRemaining {
     if (meetingStartTime == null) return Duration.zero;
     final elapsed = DateTime.now().difference(meetingStartTime!);
-    final total = Duration(seconds: meetingDurationSeconds + votingDurationSeconds);
+    const total = Duration(seconds: meetingDurationSeconds + votingDurationSeconds);
     final remaining = total - elapsed;
     return remaining.isNegative ? Duration.zero : remaining;
   }
@@ -139,17 +139,12 @@ class GameState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setSabotage(SabotageType type) {
+  void setSabotage(SabotageType type, {String? sealedZone}) {
     if (room == null) return;
-    room = RoomModel(
-      name: room!.name,
-      hostId: room!.hostId,
-      maxPlayers: room!.maxPlayers,
-      phantomCount: room!.phantomCount,
-      phase: room!.phase,
-      activeSabotage: type,
-      sabotageStartTime: type != SabotageType.none ? DateTime.now() : null,
-    );
+    room!.activeSabotage = type;
+    room!.sabotageStartTime = type != SabotageType.none ? DateTime.now() : null;
+    room!.sealedZone = type == SabotageType.airlockBreach ? sealedZone : null;
+    room!.fixingPanels.clear();
     notifyListeners();
   }
 
