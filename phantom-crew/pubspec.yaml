@@ -1,0 +1,57 @@
+name: phantom_crew
+description: Phantom Crew — A sci-fi social deduction game for 2-8 players.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flame: ^1.18.0
+  flame_audio: ^2.10.0
+  web_socket_channel: ^2.4.0
+  shared_preferences: ^2.2.2
+  provider: ^6.1.1
+  uuid: ^4.3.3
+  collection: ^1.18.0
+  vector_math: ^2.1.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  mocktail: ^1.0.3
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    # Characters
+    - assets/images/characters/
+    - assets/images/phantoms/
+    # Map
+    - assets/images/map/
+    # Tasks
+    - assets/images/tasks/
+    # UI
+    - assets/images/ui/
+    # Cosmetics
+    - assets/images/cosmetics/
+    # Effects
+    - assets/images/fx/
+    # Placeholder fallback
+    - assets/images/placeholder.png
+
+  fonts:
+    - family: Orbitron
+      fonts:
+        - asset: assets/fonts/Orbitron-Regular.ttf
+        - asset: assets/fonts/Orbitron-Bold.ttf
+          weight: 700
+    - family: Exo2
+      fonts:
+        - asset: assets/fonts/Exo2-Regular.ttf
+        - asset: assets/fonts/Exo2-SemiBold.ttf
+          weight: 600

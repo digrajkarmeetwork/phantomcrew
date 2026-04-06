@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="PHANTOM CREW — Trust no one. The phantom is already among you. A sci-fi social deduction game for up to 8 players.">
+  <meta name="theme-color" content="#0a0a1a">
+
+  <!-- PWA / iOS -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Phantom Crew">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Prevent text selection and context menu on game canvas -->
+  <style>
+    * { -webkit-tap-highlight-color: transparent; }
+    body {
+      background-color: #0a0a1a;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+    /* Loading screen */
+    #loading {
+      position: fixed;
+      inset: 0;
+      background: #0a0a1a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      font-family: sans-serif;
+      color: #00e5cc;
+    }
+    #loading-title {
+      font-size: 2rem;
+      font-weight: bold;
+      letter-spacing: 0.3em;
+      margin-bottom: 1rem;
+      text-shadow: 0 0 20px #00e5cc;
+    }
+    #loading-sub {
+      font-size: 0.8rem;
+      letter-spacing: 0.2em;
+      color: #888;
+      margin-bottom: 2rem;
+    }
+    #loading-bar-bg {
+      width: 200px;
+      height: 3px;
+      background: #222;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    #loading-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #00e5cc, #7c3aed);
+      border-radius: 2px;
+      animation: loadpulse 2s ease-in-out infinite;
+    }
+    @keyframes loadpulse {
+      0%   { width: 0%; }
+      50%  { width: 80%; }
+      100% { width: 100%; }
+    }
+  </style>
+
+  <link rel="icon" type="image/png" href="favicon.png"/>
+  <title>PHANTOM CREW</title>
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+  <div id="loading">
+    <div id="loading-title">PHANTOM CREW</div>
+    <div id="loading-sub">Trust no one. The phantom is already among you.</div>
+    <div id="loading-bar-bg"><div id="loading-bar"></div></div>
+  </div>
+
+  <script>
+    // Hide loading screen once Flutter is ready
+    window.addEventListener('flutter-first-frame', function() {
+      const el = document.getElementById('loading');
+      if (el) {
+        el.style.transition = 'opacity 0.5s';
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 500);
+      }
+    });
+  </script>
+
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

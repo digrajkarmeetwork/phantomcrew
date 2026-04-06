@@ -1,0 +1,61 @@
+name: Deploy Relay Server
+
+on:
+  push:
+    branches: [claude/game-redesign-original-assets-1FjHj, main]
+    paths:
+      - 'relay-server/**'
+  workflow_dispatch:
+
+jobs:
+  # This job packages the relay server for deployment.
+  # Configure one of the deployment targets below by adding the appropriate secrets.
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: relay-server
+        run: npm ci
+
+      - name: Test server starts
+        working-directory: relay-server
+        run: |
+          timeout 5 node server.js &
+          sleep 2
+          kill %1 || true
+          echo "Server start OK"
+
+      - name: Package relay server
+        run: |
+          cd relay-server
+          tar -czf ../relay-server.tar.gz --exclude=node_modules .
+          echo "Package created: relay-server.tar.gz"
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: relay-server-${{ github.run_number }}
+          path: relay-server.tar.gz
+          retention-days: 7
+
+  # ── Optional: deploy to Railway ───────────────────────────────────────────
+  # Add secret RAILWAY_TOKEN to enable.
+  # deploy-railway:
+  #   needs: package
+  #   runs-on: ubuntu-latest
+  #   if: ${{ secrets.RAILWAY_TOKEN != '' }}
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Deploy to Railway
+  #       uses: bervProject/railway-deploy@main
+  #       with:
+  #         railway_token: ${{ secrets.RAILWAY_TOKEN }}
+  #         service: phantom-crew-relay
