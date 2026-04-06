@@ -1,0 +1,79 @@
+name: Build iOS IPA
+
+on:
+  push:
+    branches: [claude/game-redesign-original-assets-1FjHj, main]
+  workflow_dispatch:
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.27.4'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        working-directory: phantom-crew
+        run: flutter pub get
+
+      - name: Run tests
+        working-directory: phantom-crew
+        run: flutter test
+
+      # ── Code signing (optional — unsigned IPA can be sideloaded via AltStore) ──
+      # To enable App Store / TestFlight signing:
+      #   1. Add these secrets in GitHub → Settings → Secrets:
+      #      APPLE_CERTIFICATE_BASE64   (base64 of your .p12)
+      #      APPLE_CERTIFICATE_PASSWORD
+      #      APPLE_PROVISIONING_PROFILE (base64 of your .mobileprovision)
+      #      APPLE_TEAM_ID
+      #   2. Uncomment the "Import signing" step below
+
+      # - name: Import signing assets
+      #   env:
+      #     CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+      #     CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+      #     PROVISIONING_PROFILE: ${{ secrets.APPLE_PROVISIONING_PROFILE }}
+      #   run: |
+      #     KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+      #     security create-keychain -p "" $KEYCHAIN_PATH
+      #     security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+      #     security unlock-keychain -p "" $KEYCHAIN_PATH
+      #     echo "$CERTIFICATE_BASE64" | base64 --decode -o $RUNNER_TEMP/cert.p12
+      #     security import $RUNNER_TEMP/cert.p12 -P "$CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+      #     security set-key-partition-list -S apple-tool:,apple: -k "" $KEYCHAIN_PATH
+      #     security list-keychain -d user -s $KEYCHAIN_PATH
+      #     mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+      #     echo "$PROVISIONING_PROFILE" | base64 --decode -o ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+
+      - name: Build unsigned IPA
+        working-directory: phantom-crew
+        run: |
+          flutter build ios --release --no-codesign
+          mkdir -p Payload
+          cp -r build/ios/iphoneos/Runner.app Payload/
+          zip -r PhantomCrew.ipa Payload/
+          rm -rf Payload
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhantomCrew-iOS-${{ github.run_number }}
+          path: phantom-crew/PhantomCrew.ipa
+          retention-days: 14
+
+      - name: Upload dSYMs
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhantomCrew-dSYMs-${{ github.run_number }}
+          path: phantom-crew/build/ios/archive/Runner.xcarchive/dSYMs
+          retention-days: 14
+          if-no-files-found: ignore

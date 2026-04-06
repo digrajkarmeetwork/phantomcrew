@@ -7,8 +7,9 @@ plugins {
 
 android {
     namespace = "com.phantomcrew.phantom_crew"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    compileSdk = 35
+    buildToolsVersion = "33.0.1"
+    ndkVersion = "25.1.8937393"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
